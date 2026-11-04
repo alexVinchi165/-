@@ -1,0 +1,3684 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <!-- Идеальная середина1212 -->
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Зелёный Дол | ERP & Empire</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        :root {
+            --bg-color: #12181b;
+            --card-bg: #1e262c;
+            --card-hover: #263238;
+            --accent-green: #2ecc71;
+            --accent-gold: #f1c40f;
+            --accent-blue: #3498db;
+            --accent-purple: #9b59b6;
+            --accent-red: #e74c3c;
+            --text-color: #ecf0f1;
+            --text-muted: #bdc3c7;
+            --border-radius: 14px;
+        }
+
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 12px;
+            box-sizing: border-box;
+        }
+
+        .header {
+            text-align: center;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #2c3e50;
+            margin-bottom: 14px;
+        }
+
+        .header h1 { margin: 0; font-size: 20px; color: var(--accent-green); }
+        .header p { margin: 4px 0 0; font-size: 11px; color: var(--text-muted); }
+
+        .hub-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 14px;
+        }
+
+        .hub-card {
+            background: var(--card-bg);
+            border-radius: var(--border-radius);
+            padding: 16px 12px;
+            text-align: center;
+            cursor: pointer;
+            border: 1px solid rgba(255,255,255,0.04);
+            transition: transform 0.1s, background 0.2s;
+        }
+
+        .hub-card:active { transform: scale(0.97); }
+        .hub-card:hover { background: var(--card-hover); }
+
+        .hub-icon { font-size: 26px; margin-bottom: 6px; }
+        .hub-title { font-size: 13px; font-weight: bold; color: var(--text-color); }
+        .hub-desc { font-size: 10px; color: var(--text-muted); margin-top: 2px; }
+
+        .back-btn {
+            background: rgba(255,255,255,0.08);
+            color: var(--text-color);
+            border: none;
+            padding: 8px 14px;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-bottom: 12px;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .card {
+            background: var(--card-bg);
+            border-radius: var(--border-radius);
+            padding: 14px;
+            margin-bottom: 12px;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .stat-box {
+            background: rgba(255,255,255,0.03);
+            padding: 10px;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .stat-val { font-size: 18px; font-weight: bold; color: var(--accent-gold); }
+        .stat-lbl { font-size: 11px; color: var(--text-muted); }
+
+        .btn {
+            width: 100%;
+            background: var(--accent-green);
+            color: #fff;
+            border: none;
+            padding: 10px;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 8px;
+        }
+
+        .btn-blue { background: var(--accent-blue); }
+        .btn-gold { background: var(--accent-gold); color: #111; }
+        .btn-purple { background: var(--accent-purple); color: #fff; }
+        .btn-danger { background: var(--accent-red); color: #fff; }
+
+        .btn-sm {
+            width: auto;
+            padding: 4px 8px;
+            font-size: 11px;
+            margin-top: 0;
+            border-radius: 6px;
+        }
+
+        .item-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            font-size: 13px;
+        }
+
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+
+        input, select, textarea {
+            width: 100%;
+            padding: 8px;
+            margin: 4px 0 10px;
+            border-radius: 6px;
+            border: 1px solid #333;
+            background: #111;
+            color: #fff;
+            box-sizing: border-box;
+            font-family: inherit;
+        }
+
+        .logistics-filters {
+            display: flex;
+            gap: 6px;
+            margin-bottom: 12px;
+            overflow-x: auto;
+            padding-bottom: 4px;
+        }
+
+        .filter-btn {
+            background: var(--card-bg);
+            color: var(--text-muted);
+            border: 1px solid #333;
+            padding: 6px 10px;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: bold;
+            white-space: nowrap;
+            cursor: pointer;
+        }
+
+        .filter-btn.active {
+            background: var(--accent-blue);
+            color: #fff;
+            border-color: var(--accent-blue);
+        }
+
+        .item-badge { background: #2ecc7122; color: #2ecc71; padding: 2px 6px; border-radius: 4px; font-size: 11px; font-weight: bold; display: inline-block; margin-top: 4px; }
+        .category-badge { background: rgba(155, 89, 182, 0.2); color: var(--accent-purple); border: 1px solid var(--accent-purple); padding: 2px 6px; border-radius: 4px; font-size: 10px; font-weight: bold; display: inline-block; }
+        .online-tag { background: rgba(52, 152, 219, 0.2); color: #3498db; border: 1px solid #3498db; padding: 2px 6px; border-radius: 4px; font-size: 10px; font-weight: bold; }
+        
+        .time-badge { background: rgba(241, 196, 15, 0.15); color: var(--accent-gold); padding: 2px 6px; border-radius: 4px; font-size: 10px; font-weight: bold; display: inline-flex; align-items: center; gap: 3px; }
+        .time-urgent { background: rgba(231, 76, 60, 0.2); color: #e74c3c; border: 1px solid #e74c3c; }
+
+        .toggle-btn { border: none; padding: 4px 8px; border-radius: 6px; font-size: 11px; font-weight: bold; cursor: pointer; }
+        .toggle-active { background: rgba(46, 204, 113, 0.2); color: #2ecc71; }
+        .toggle-disabled { background: rgba(231, 76, 60, 0.2); color: #e74c3c; }
+
+        .status-badge-ok { background: rgba(46, 204, 113, 0.2); color: #2ecc71; padding: 3px 8px; border-radius: 6px; font-size: 11px; font-weight: bold; }
+        .status-badge-no { background: rgba(231, 76, 60, 0.2); color: #e74c3c; padding: 3px 8px; border-radius: 6px; font-size: 11px; font-weight: bold; }
+        .stage-badge { background: rgba(52, 152, 219, 0.2); color: var(--accent-blue); padding: 3px 8px; border-radius: 6px; font-size: 11px; font-weight: bold; }
+        .missing-info { font-size: 11px; color: #e74c3c; margin-top: 4px; background: rgba(231, 76, 60, 0.1); padding: 6px; border-radius: 6px; }
+        .order-timer-info { font-size: 10px; color: var(--text-muted); background: rgba(255,255,255,0.03); padding: 6px; border-radius: 6px; margin-top: 6px; border-left: 2px solid var(--accent-gold); }
+        .type-tag { font-size: 10px; padding: 2px 6px; border-radius: 4px; font-weight: bold; text-transform: uppercase; }
+        .tag-small { background: #34495e; color: #bdc3c7; }
+        .tag-medium { background: #2980b9; color: #fff; }
+        .tag-large { background: #e67e22; color: #fff; }
+        .tag-mega { background: #8e44ad; color: #fff; }
+        
+        .news-card { background: linear-gradient(135deg, #2c3e50, #1a252f); border-left: 4px solid var(--accent-gold); padding: 12px; border-radius: 8px; margin-bottom: 10px; }
+        .news-title { font-weight: bold; color: var(--accent-gold); font-size: 13px; }
+        .news-body { font-size: 11px; color: #ecf0f1; margin-top: 4px; }
+        .news-date { font-size: 9px; color: var(--text-muted); text-align: right; margin-top: 4px; }
+        
+        .property-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+        .rating-stars { color: var(--accent-gold); font-size: 14px; }
+        .progress-bar-bg { background: rgba(255,255,255,0.1); border-radius: 6px; height: 8px; width: 100%; overflow: hidden; margin-top: 6px; }
+        .progress-bar-fill { background: var(--accent-green); height: 100%; width: 0%; transition: width 0.3s; }
+        
+        .chat-bubble { background: rgba(255,255,255,0.05); padding: 10px; border-radius: 8px; margin-bottom: 8px; font-size: 12px; border-left: 3px solid var(--accent-blue); line-height: 1.4; }
+        .chat-bubble-me { border-left: 3px solid var(--accent-green); background: rgba(46, 204, 113, 0.08); }
+
+        .marketplace-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        .market-item-card {
+            background: var(--card-bg);
+            border-radius: var(--border-radius);
+            padding: 10px;
+            border: 1px solid rgba(255,255,255,0.05);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+        .market-item-img {
+            width: 100%;
+            height: 80px;
+            object-fit: cover;
+            border-radius: 8px;
+            background: #111;
+            margin-bottom: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 32px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <h1>🌾 «Зелёный Дол»</h1>
+        <p>Панель управления агро-холдингом</p>
+    </div>
+
+    <!-- 🏠 ГЛАВНЫЙ ЭКРАН (ХАБ) -->
+    <div id="hub" class="tab-content active">
+        <div class="card" style="background: linear-gradient(135deg, #1e262c, #161f26);">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+                <div>
+                    <span style="font-size:11px; color:var(--text-muted);">Текущая дата:</span>
+                    <h3 id="currentDateDisplay" style="margin:2px 0 0; color:var(--accent-green);">01/01/0001</h3>
+                </div>
+                <button class="btn btn-gold" style="width:auto; padding:8px 14px; font-size:12px; margin:0;" onclick="nextDay()">Завершить день 🌙</button>
+                <button class="btn btn-purple" style="width:auto; padding:8px 14px; font-size:12px; margin-left:5px;" onclick="syncWithCloud()">🔄 Синхрон</button>
+            </div>
+            
+            <div style="margin-top:14px; padding-top:10px; border-top:1px solid rgba(255,255,255,0.05); display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                <div>
+                    <span style="font-size:11px; color:var(--text-muted);">Касса компании (Итого):</span>
+                    <div id="totalBalance" style="font-size:20px; font-weight:bold; color:var(--accent-gold); margin-top:2px;">4 785 🪙</div>
+                </div>
+                <div>
+                    <span style="font-size:11px; color:var(--text-muted);">Выручка за сегодня:</span>
+                    <div id="dayRevenueDisplay" style="font-size:20px; font-weight:bold; color:var(--accent-green); margin-top:2px;">0 🪙</div>
+                </div>
+            </div>
+            <div style="margin-top: 8px; padding-top: 6px; border-top: 1px dashed rgba(255,255,255,0.05); display: flex; justify-content: space-between; align-items: center; font-size: 11px;">
+                <span style="color: var(--text-muted);">🏛️ Налог в конце дня:</span>
+                <b id="estimatedTaxDisplay" style="color: var(--accent-red);">-0 🪙 (12%)</b>
+            </div>
+
+            <div class="stats-grid" style="margin-top:12px;">
+                <div class="stat-box">
+                    <div class="stat-val" id="hubOrdersCount">0</div>
+                    <div class="stat-lbl">Заказов на бирже</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-val" id="hubRating">5.0 ★</div>
+                    <div class="stat-lbl">Рейтинг доверия</div>
+                </div>
+            </div>
+        </div>
+
+        <h4 style="margin: 16px 0 10px; color: var(--text-muted); font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px;">📂 Разделы управления</h4>
+
+        <div class="hub-grid">
+            <div class="hub-card" onclick="switchTab('auctions')" style="border-left: 2px solid var(--accent-purple);">
+                <div class="hub-icon">🔨</div>
+                <div class="hub-title">Мировой Аукцион</div>
+                <div class="hub-desc">Сетевые торги</div>
+            </div>
+            <div class="hub-card" onclick="switchTab('p2p_bank')" style="border-left: 2px solid var(--accent-blue);">
+                <div class="hub-icon">💳</div>
+                <div class="hub-title">P2P Банк & ФОП</div>
+                <div class="hub-desc">Переводы игрокам</div>
+            </div>
+            <div class="hub-card" onclick="switchTab('ai_advisor')" style="border-left: 2px solid var(--accent-gold);">
+                <div class="hub-icon">🤖</div>
+                <div class="hub-title">ИИ-Советник</div>
+                <div class="hub-desc">Анализ рынка</div>
+            </div>
+            <div class="hub-card" onclick="switchTab('market')">
+                <div class="hub-icon">📦</div>
+                <div class="hub-title">Биржа заказов</div>
+                <div class="hub-desc">Оптовые контракты городов</div>
+            </div>
+            <div class="hub-card" onclick="switchTab('online_store')">
+                <div class="hub-icon">🌐</div>
+                <div class="hub-title">Интернет-магазин</div>
+                <div class="hub-desc">Маркетплейс & Заказы</div>
+            </div>
+            <div class="hub-card" onclick="switchTab('shopping_bazaar')">
+                <div class="hub-icon">🏬</div>
+                <div class="hub-title">Рынок & Торговцы</div>
+                <div class="hub-desc">Семена, Скот, Чат с NPC</div>
+            </div>
+            <div class="hub-card" onclick="switchTab('in_progress')">
+                <div class="hub-icon">🚤</div>
+                <div class="hub-title">Рейсы</div>
+                <div class="hub-desc">Логистика и доставка</div>
+            </div>
+            <div class="hub-card" onclick="switchTab('active_fleet')">
+                <div class="hub-icon">🚚</div>
+                <div class="hub-title">Транспорт в работе</div>
+                <div class="hub-desc">Статусы, кузов и рейсы</div>
+            </div>
+            <div class="hub-card" onclick="switchTab('bank')">
+                <div class="hub-icon">🏦</div>
+                <div class="hub-title">Банк & ФОП</div>
+                <div class="hub-desc">Выписки, кредиты, переводы</div>
+            </div>
+            <div class="hub-card" onclick="switchTab('purchases')">
+                <div class="hub-icon">🧾</div>
+                <div class="hub-title">Чеки покупок</div>
+                <div class="hub-desc">Расходы на флот и авто</div>
+            </div>
+            <div class="hub-card" onclick="switchTab('harvest')">
+                <div class="hub-icon">🧺</div>
+                <div class="hub-title">Склад & Урожай</div>
+                <div class="hub-desc">Сырьё и продукция</div>
+            </div>
+            <div class="hub-card" onclick="switchTab('products')">
+                <div class="hub-icon">🥫</div>
+                <div class="hub-title">Продукция компании</div>
+                <div class="hub-desc">Каталог соков и товаров</div>
+            </div>
+            <div class="hub-card" onclick="switchTab('crops')">
+                <div class="hub-icon">🌱</div>
+                <div class="hub-title">Культуры</div>
+                <div class="hub-desc">Каталог и тумблеры</div>
+            </div>
+            <div class="hub-card" onclick="switchTab('bookkeeping')">
+                <div class="hub-icon">💰</div>
+                <div class="hub-title">Бухгалтерия</div>
+                <div class="hub-desc">История продаж по дням</div>
+            </div>
+            <div class="hub-card" onclick="switchTab('news')">
+                <div class="hub-icon">📰</div>
+                <div class="hub-title">Вестник & Новости</div>
+                <div class="hub-desc">Газета и события мира</div>
+            </div>
+            <div class="hub-card" onclick="switchTab('cities')">
+                <div class="hub-icon">🏙️</div>
+                <div class="hub-title">Города & Гильдии</div>
+                <div class="hub-desc">Карта точек доставки</div>
+            </div>
+            <div class="hub-card" onclick="switchTab('reviews')">
+                <div class="hub-icon">⭐</div>
+                <div class="hub-title">Отзывы & Репутация</div>
+                <div class="hub-desc">Рейтинг холдинга</div>
+            </div>
+            <div class="hub-card" onclick="switchTab('prices')">
+                <div class="hub-icon">📈</div>
+                <div class="hub-title">Рыночные цены</div>
+                <div class="hub-desc">Волатильность и спрос</div>
+            </div>
+            <div class="hub-card" onclick="switchTab('analytics')">
+                <div class="hub-icon">📊</div>
+                <div class="hub-title">Аналитика</div>
+                <div class="hub-desc">Отчёты и налоги</div>
+            </div>
+            <div class="hub-card" onclick="switchTab('property')">
+                <div class="hub-icon">📜</div>
+                <div class="hub-title">Реестр имущества</div>
+                <div class="hub-desc">Земля, авто, дома</div>
+            </div>
+            <div class="hub-card" onclick="switchTab('archive')">
+                <div class="hub-icon">📑</div>
+                <div class="hub-title">Архив чеков</div>
+                <div class="hub-desc">История продаж</div>
+            </div>
+        </div>
+
+        <button class="btn btn-danger" style="font-size:11px; opacity:0.6; margin-top:10px;" onclick="resetAllData()">🔄 Сбросить прогресс системы</button>
+    </div>
+
+    
+    <!-- 🔨 МИРОВОЙ АУКЦИОН -->
+    <div id="auctions" class="tab-content">
+        <button class="back-btn" onclick="switchTab('hub')">⬅️ На главную</button>
+        <h3>🔨 Мировой Аукцион Игроков</h3>
+        <p style="font-size:11px; color:var(--text-muted); margin-bottom:12px;">Выставляйте редкие товары с фото и описанием, делайте ставки в реальном времени:</p>
+
+        <div class="card">
+            <h4>➕ Выставить лот на аукцион</h4>
+            <input type="text" id="aucTitle" placeholder="Название лота (например: Редкое семя / Улучшенный трактор)">
+            <input type="text" id="aucCategory" placeholder="Категория (например: Техника, Семена, Ресурсы)">
+            <input type="text" id="aucImage" placeholder="Ссылка на фото (URL с ImgBB или картинка)">
+            <input type="number" id="aucAmount" placeholder="Количество (шт / кг)" value="1">
+            <input type="number" id="aucMinBid" placeholder="Стартовая минимальная цена (🪙)" value="500">
+            <button class="btn btn-purple" onclick="createAuctionLot()">📦 Опубликовать лот на аукционе</button>
+        </div>
+
+        <h4>🏛️ Активные лоты на торгах:</h4>
+        <div id="globalAuctionsList"></div>
+    </div>
+
+    <!-- 💳 P2P БАНК И ПЕРЕВОДЫ -->
+    <div id="p2p_bank" class="tab-content">
+        <button class="back-btn" onclick="switchTab('hub')">⬅️ На главную</button>
+        <h3>💳 P2P Банк & Межбанковские Переводы</h3>
+        
+        <div class="card">
+            <h4>💸 Перевод средств другому игроку</h4>
+            <p style="font-size:11px; color:var(--text-muted);">Отправляйте деньги на карту или ФОП другим игрокам сети.</p>
+            <input type="text" id="p2pRecipient" placeholder="Имя получателя или IBAN / номер карты">
+            <input type="number" id="p2pAmount" placeholder="Сумма перевода (🪙)">
+            <input type="text" id="p2pNote" placeholder="Назначение платежа (за сырье, за услугу...)">
+            <button class="btn btn-blue" onclick="sendP2PTransfer()">Отправить перевод 💸</button>
+        </div>
+
+        <div class="card">
+            <h4>📜 История сетевых транзакций и переводов</h4>
+            <div id="p2pHistoryList"></div>
+        </div>
+    </div>
+
+    <!-- 🤖 ИИ-СОВЕТНИК -->
+    <div id="ai_advisor" class="tab-content">
+        <button class="back-btn" onclick="switchTab('hub')">⬅️ На главную</button>
+        <h3>🤖 ИИ-Советник «Зелёного Дола»</h3>
+        <div class="card">
+            <p style="font-size:12px; line-height:1.5;">Привет, братунец! Я твой встроенный искусственный интеллект-ассистент. Я мониторю мировой рынок, подсказываю выгодные ставки на аукционах и слежу за безопасностью твоих переводов ФОП.</p>
+            <button class="btn btn-purple" onclick="askAiAdvice()">📊 Запросить торговый совет у ИИ</button>
+            <div id="aiAdviceOutput" style="margin-top:10px; font-size:12px; color:var(--accent-gold); background:rgba(0,0,0,0.2); padding:10px; border-radius:6px; display:none;"></div>
+        </div>
+    </div>
+
+    <!-- 🌐 ИНТЕРНЕТ-МАГАЗИН (ПОДВКЛАДКИ + ЖИВОЙ ПРИТОК ЗАКАЗОВ) -->
+    <div id="online_store" class="tab-content">
+        <button class="back-btn" onclick="switchTab('hub')">⬅️ На главную</button>
+        <h3>🌐 «Зелёный Дол» Маркетплейс</h3>
+        <p style="font-size:11px; color:var(--text-muted); margin-bottom:12px;">Покупатели делают заказы в реальном времени. Следите за таймером ожидания:</p>
+
+        <!-- Подвкладки магазина: ничего не путается в кучу -->
+        <div class="logistics-filters">
+            <button class="filter-btn active" id="btnStoreTabShowcase" onclick="switchStoreSubTab('showcase')">🛍️ Витрина маркетплейса</button>
+            <button class="filter-btn" id="btnStoreTabAdd" onclick="switchStoreSubTab('add')">➕ Выставить товар</button>
+            <button class="filter-btn" id="btnStoreTabOrders" onclick="switchStoreSubTab('orders')">📥 Входящие заказы (<span id="storeOrdersCounterBadge">0</span>)</button>
+        </div>
+
+        <!-- 1. ВИТРИНА МАГАЗИНА С КАТЕГОРИЯМИ И ПОИСКОМ -->
+        <div id="storeViewShowcase">
+            <div class="card">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                    <b>🔍 Поиск и фильтрация по категориям</b>
+                    <button class="btn btn-gold btn-sm" onclick="triggerManualStoreOrder()">📢 Запустить рекламу (+1 заказ)</button>
+                </div>
+                <input type="text" id="storeSearchInput" placeholder="🔍 Быстрый поиск по названию или описанию..." oninput="renderMarketplaceShowcase()">
+                
+                <div style="font-size:11px; color:var(--text-muted); margin:6px 0 4px;">Фильтр категорий:</div>
+                <div class="logistics-filters" id="storeCategoryFiltersContainer"></div>
+                
+                <div class="marketplace-grid" id="marketplaceShowcaseGrid"></div>
+            </div>
+        </div>
+
+        <!-- 2. ВЫСТАВИТЬ ТОВАР (С ВЫБОРОМ КАТЕГОРИЙ И ДОБАВЛЕНИЕМ СВОИХ) -->
+        <div id="storeViewAdd" style="display:none;">
+            <div class="card" style="border-left: 4px solid var(--accent-blue);">
+                <h4>➕ Выставить товар на витрину Маркетплейса</h4>
+                
+                <div class="property-grid-2">
+                    <div>
+                        <label style="font-size:11px; color:var(--text-muted);">Категория со склада:</label>
+                        <select id="marketItemTypeSelect" onchange="toggleMarketplaceAddType()">
+                            <option value="crop">🌾 Сырая культура / Овощи</option>
+                            <option value="product">🥫 Готовая продукция / Товары</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label style="font-size:11px; color:var(--text-muted);">Категория маркетплейса:</label>
+                        <select id="marketCategorySelect"></select>
+                    </div>
+                </div>
+
+                <div style="text-align:right; margin-bottom:6px;">
+                    <button class="btn btn-purple btn-sm" onclick="promptAddNewCategory()">➕ Создать свою категорию</button>
+                </div>
+                
+                <input type="text" id="marketAddSearchInput" placeholder="🔍 Быстрый поиск позиции по названию..." oninput="renderMarketplaceAddOptions()">
+                <select id="marketSourceItemSelect"></select>
+
+                <div class="property-grid-2">
+                    <div>
+                        <label style="font-size:11px; color:var(--text-muted);">Единица продажи:</label>
+                        <select id="marketUnitTypeSelect">
+                            <option value="kg">Килограммы (кг)</option>
+                            <option value="pcs">Штуки (шт)</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label style="font-size:11px; color:var(--text-muted);">Цена за 1 ед. (🪙):</label>
+                        <input type="number" id="marketCustomPriceInput" placeholder="Цена продажи">
+                    </div>
+                </div>
+
+                <label style="font-size:11px; color:var(--text-muted);">Минимальный объём покупки (можно 0.1 = 100 г):</label>
+                <input type="number" step="0.01" id="marketMinOrderInput" placeholder="Минимум заказа (например: 0.1, 0.5, 1 или 5)" value="1">
+
+                <textarea id="marketItemDescInput" placeholder="Описание товара для онлайн-клиентов..."></textarea>
+                <input type="text" id="marketItemImgInput" placeholder="Ссылка на фото товара (URL) или эмодзи (например: 🍅)">
+                <button class="btn btn-blue" onclick="addMarketplaceListing()">Опубликовать карточку на витрине 🛍️</button>
+            </div>
+        </div>
+
+        <!-- 3. ВХОДЯЩИЕ ОНЛАЙН-ЗАКАЗЫ -->
+        <div id="storeViewOrders" style="display:none;">
+            <h4>📥 Входящие онлайн-заказы покупателей:</h4>
+            <div id="storeOrdersList"></div>
+        </div>
+    </div>
+
+    <!-- 🏬 ЦЕНТРАЛЬНЫЙ РЫНОК -->
+    <div id="shopping_bazaar" class="tab-content">
+        <button class="back-btn" onclick="switchTab('hub')">⬅️ На главную</button>
+        <h3>🏬 Центральный Рынок & Торговцы</h3>
+        <p style="font-size:11px; color:var(--text-muted); margin-bottom:12px;">Закупка семян, скота, инструментов и живой чат с поставщиками:</p>
+
+        <div class="logistics-filters">
+            <button class="filter-btn active" onclick="switchBazaarCategory('farm', this)">🌾 Ферма (Семена & Саженцы)</button>
+            <button class="filter-btn" onclick="switchBazaarCategory('livestock', this)">🐮 Скотарство (Животные)</button>
+            <button class="filter-btn" onclick="switchBazaarCategory('tools', this)">🛠️ Инструменты & Инвентарь</button>
+            <button class="filter-btn" onclick="switchBazaarCategory('chat', this)">💬 Торговая рация (Чат)</button>
+        </div>
+
+        <div id="bazaarContentList"></div>
+    </div>
+
+    <!-- 🚚 Раздел «Транспорт в работе» -->
+    <div id="active_fleet" class="tab-content">
+        <button class="back-btn" onclick="switchTab('hub')">⬅️ На главную</button>
+        <h3>🚚 Мониторинг транспорта и Автопарка</h3>
+        <p style="font-size:11px; color:var(--text-muted); margin-bottom:12px;">Отслеживание локации, загруженности кузова и статусов доставки каждого ТС:</p>
+        <div id="fleetStatusList"></div>
+    </div>
+
+    <!-- 🏦 Раздел Банк, Переводы, ФОП & ВЫПИСКА ОПЛАТ -->
+    <div id="bank" class="tab-content">
+        <button class="back-btn" onclick="switchTab('hub')">⬅️ На главную</button>
+        <h3>🏦 Центральный Банк & Юридический Отдел</h3>
+        
+        <div class="card" style="background: linear-gradient(135deg, #1e262c, #161f26); border-left: 4px solid var(--accent-gold);">
+            <span style="font-size:11px; color:var(--text-muted);">Доступные средства компании:</span>
+            <h2 id="bankBalanceDisplay" style="margin:4px 0 0; color:var(--accent-gold);">4 785 🪙</h2>
+        </div>
+
+        <div class="card" style="border-left: 4px solid var(--accent-purple);">
+            <h4>🏢 Статус ФОП / Юридического Лица</h4>
+            <div id="fopStatusContent"></div>
+        </div>
+
+        <!-- 📜 ВЫПИСКА ВХОДЯЩИХ ОПЛАТ ФОП -->
+        <div class="card" style="border-left: 4px solid var(--accent-green);">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+                <h4>🏛️ Банковская выписка ФОП (Входящие оплаты & Предоплаты)</h4>
+                <b id="fopTotalEarnedBadge" style="color:var(--accent-green); font-size:12px;">0 🪙</b>
+            </div>
+            <p style="font-size:11px; color:var(--text-muted);">Реестр поступивших оплат от онлайн-покупателей (предоплаты 100 🪙, полные оплаты и наложка):</p>
+            <div id="fopIncomingPaymentsList"></div>
+        </div>
+
+        <div class="card">
+            <h4>💳 Оформить Кредит компании</h4>
+            <p style="font-size:11px; color:var(--text-muted);">Выберите срок и сумму кредита. Проценты удерживаются ежедневно при закрытии дня.</p>
+            <input type="number" id="loanAmountInput" placeholder="Сумма кредита в коинах (например: 5000)">
+            <select id="loanTermSelect">
+                <option value="3">На 3 дня (Ставка: 4% в день)</option>
+                <option value="7">На 7 дней (Ставка: 3% в день)</option>
+                <option value="14">На 14 дней (Ставка: 2% в день)</option>
+            </select>
+            <button class="btn btn-gold" onclick="takeRealisticLoan()">Получить кредит 💰</button>
+            <div id="activeLoanStatus" style="margin-top:8px; font-size:12px;"></div>
+        </div>
+
+        <div class="card">
+            <h4>📈 Депозитный Вклад</h4>
+            <p style="font-size:11px; color:var(--text-muted);">Доходность: 3% ежедневно на остаток по вкладу.</p>
+            <input type="number" id="depositAmountInput" placeholder="Сумма для внесения или частичного снятия">
+            <div style="display:flex; gap:8px;">
+                <button class="btn btn-blue" onclick="makeDeposit()">Внести вклад 📥</button>
+                <button class="btn btn-purple" onclick="withdrawPartialDeposit()">Снять сумму 📤</button>
+            </div>
+            <div id="activeDepositStatus" style="margin-top:8px; font-size:12px;"></div>
+        </div>
+
+        <div class="card">
+            <h4>💸 Перевод средств со счёта компании</h4>
+            <p style="font-size:11px; color:var(--text-muted);">Отправляйте средства партнерам или на личные счета. Комиссия банку: <b>2%</b>.</p>
+            <input type="text" id="transferTargetInput" placeholder="Номер карты или IBAN / Имя получателя">
+            <input type="number" id="transferAmountInput" placeholder="Сумма перевода (🪙)">
+            <input type="text" id="transferNoteInput" placeholder="Назначение платежа">
+            <button class="btn btn-purple" onclick="executeBankTransfer()">Отправить перевод 💸</button>
+        </div>
+
+        <div class="card">
+            <h4>📜 История исходящих переводов</h4>
+            <div id="transferHistoryList"></div>
+        </div>
+
+        <div class="card">
+            <h4>📊 Биржа Акций Региона</h4>
+            <p style="font-size:11px; color:var(--text-muted);">Инвестируйте в акции для получения дивидендов каждый день.</p>
+            <div id="stocksList"></div>
+        </div>
+    </div>
+
+    <!-- 🧺 Единый Склад -->
+    <div id="harvest" class="tab-content">
+        <button class="back-btn" onclick="switchTab('hub')">⬅️ На главную</button>
+        <h3>🧺 Склад предприятия (Сырьё и продукция)</h3>
+        
+        <div class="card">
+            <h4>📦 Занести поступление на склад</h4>
+            <select id="warehouseItemTypeSelect" onchange="toggleWarehouseInputType()">
+                <option value="crop">🌾 Сырая культура / Овощи</option>
+                <option value="product">🥫 Готовая продукция (Соки, масло и др.)</option>
+            </select>
+            
+            <input type="text" id="warehouseSearchInput" placeholder="🔍 Быстрый поиск позиции по названию..." oninput="renderHarvestSelect()">
+
+            <select id="warehouseItemSelect"></select>
+            <input type="number" id="warehousePcsInput" placeholder="Количество единиц (штук / упаковок)">
+            <button class="btn" onclick="recordWarehouseStock()">📦 Добавить на склад</button>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr; gap: 12px;">
+            <div class="card">
+                <h4 style="color:var(--accent-green); margin-top:0;">🌾 Запасы сырых культур</h4>
+                <div id="stockCropsList"></div>
+            </div>
+            <div class="card">
+                <h4 style="color:var(--accent-blue); margin-top:0;">🥫 Запасы готовой продукции</h4>
+                <div id="stockProductsList"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 🥫 Каталог Продукции -->
+    <div id="products" class="tab-content">
+        <button class="back-btn" onclick="switchTab('hub')">⬅️ На главную</button>
+        <h3>🥫 Каталог продукции предприятия</h3>
+        
+        <div class="card">
+            <h4>➕ Добавить новую позицию продукции</h4>
+            <input type="text" id="productName" placeholder="Название (например: Яблочный сок 1л)">
+            <input type="number" id="productPrice" placeholder="Цена за 1 шт/упак (в коинах)">
+            <input type="number" step="0.01" id="productWeight" placeholder="Вес 1 шт в кг (например: 1.0)">
+            <button class="btn btn-purple" onclick="addProduct()">➕ Сохранить в каталог</button>
+        </div>
+
+        <h4>📋 Список позиций продукции:</h4>
+        <div class="card" id="productsList"></div>
+    </div>
+
+    <!-- 🌱 Культуры -->
+    <div id="crops" class="tab-content">
+        <button class="back-btn" onclick="switchTab('hub')">⬅️ На главную</button>
+        <h3>🌱 Управление культурами</h3>
+        <div class="card">
+            <h4>➕ Добавить культуру</h4>
+            <input type="text" id="cropName" placeholder="Название (Арбуз)">
+            <input type="number" id="cropPriceKg" placeholder="Цена за 1 кг (в коинах)">
+            <input type="number" step="0.01" id="cropWeightPerPcs" placeholder="Вес 1 шт в кг (3 для тыквы)">
+            <button class="btn" onclick="addCrop()">➕ Сохранить</button>
+        </div>
+        <div class="card" id="cropsList"></div>
+    </div>
+
+    <!-- 🧾 Чеки покупок -->
+    <div id="purchases" class="tab-content">
+        <button class="back-btn" onclick="switchTab('hub')">⬅️ На главную</button>
+        <h3>🧾 Чеки и Расходы Компании</h3>
+        
+        <div class="card">
+            <h4>➕ Оформить покупку техники/имущества</h4>
+            <input type="text" id="purchaseItemTitle" placeholder="Наименование (например: Вертолёт M-8 / Лодка)">
+            <select id="purchaseCategory">
+                <option value="Транспорт">🚗 Транспорт / Флот / Вертолёты</option>
+                <option value="Недвижимость">🏢 Недвижимость / Постройки</option>
+                <option value="Оборудование">⚙️ Оборудование / Спецтехника</option>
+            </select>
+            <input type="number" id="purchasePrice" placeholder="Стоимость покупки (🪙)">
+            <input type="number" id="purchaseCapacity" placeholder="Вместимость заказов (для транспорта)" value="3">
+            <button class="btn btn-purple" onclick="buyCompanyAsset()">Купить и оформить чек 📜</button>
+        </div>
+
+        <h4>📜 Реестр чеков на закупку:</h4>
+        <div id="purchasesHistoryList"></div>
+    </div>
+
+    <!-- 📦 Биржа заказов (ДИНАМИЧЕСКИЙ ПРИТОК И ВРЕМЯ) -->
+    <div id="market" class="tab-content">
+        <button class="back-btn" onclick="switchTab('hub')">⬅️ На главную</button>
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+            <div>
+                <h3 style="margin:0;">📦 Биржа контрактов</h3>
+                <small style="color:var(--text-muted); font-size:10px;">Заявки городов поступают в реальном времени</small>
+            </div>
+            <button class="btn btn-blue" style="width:auto; padding:4px 10px; font-size:11px; margin:0;" onclick="triggerManualMarketOrder()">🎲 Найти контракт</button>
+        </div>
+        <div id="marketList"></div>
+    </div>
+
+    <!-- 💰 Бухгалтерия -->
+    <div id="bookkeeping" class="tab-content">
+        <button class="back-btn" onclick="switchTab('hub')">⬅️ На главную</button>
+        <h3>💰 Бухгалтерия & Финансовые отчёты</h3>
+        <div class="card" style="background: linear-gradient(135deg, #1e262c, #161f26);">
+            <span style="font-size:11px; color:var(--text-muted);">Накопленная касса холдинга:</span>
+            <h2 id="bookkeepingTotalBalance" style="margin:4px 0 0; color:var(--accent-gold);">4 785 🪙</h2>
+        </div>
+        <h4>📅 Выручка, налоги и проданные товары по дням:</h4>
+        <div id="bookkeepingDaysList"></div>
+    </div>
+
+    <!-- 📰 Новости -->
+    <div id="news" class="tab-content">
+        <button class="back-btn" onclick="switchTab('hub')">⬅️ На главную</button>
+        <h3>📰 Вестник Зелёного Дола</h3>
+        <p style="font-size:11px; color:var(--text-muted); margin-bottom:10px;">Свежие сводки новостей и экономические события региона:</p>
+        <div id="newsList"></div>
+    </div>
+
+    <!-- 🏙️ Города -->
+    <div id="cities" class="tab-content">
+        <button class="back-btn" onclick="switchTab('hub')">⬅️ На главную</button>
+        <h3>🏙️ Управление Городами & Гильдиями</h3>
+        <div class="card">
+            <h4>➕ Открыть новый город / Торговую точку</h4>
+            <input type="text" id="newCityNameInput" placeholder="Название города (например: Новоград)">
+            <button class="btn btn-purple" onclick="addNewCity()">🏛️ Зарегистрировать город</button>
+        </div>
+
+        <h4>📍 Открытые населённые пункты:</h4>
+        <div class="card" id="citiesList"></div>
+    </div>
+
+    <!-- ⭐ Отзывы -->
+    <div id="reviews" class="tab-content">
+        <button class="back-btn" onclick="switchTab('hub')">⬅️ На главную</button>
+        <h3>⭐ Отзывы клиентов и Репутация</h3>
+        <div class="card" style="text-align:center;">
+            <div style="font-size:32px; font-weight:bold; color:var(--accent-gold);" id="reviewsRatingVal">5.0</div>
+            <div class="rating-stars">★★★★★</div>
+            <p style="font-size:11px; color:var(--text-muted); margin-top:6px;">Высокий рейтинг привлекает крупные и дорогие контракты!</p>
+        </div>
+        <h4>💬 Последние отзывы покупателей:</h4>
+        <div id="reviewsList"></div>
+    </div>
+
+    <!-- 📈 Цены -->
+    <div id="prices" class="tab-content">
+        <button class="back-btn" onclick="switchTab('hub')">⬅️ На главную</button>
+        <h3>📈 Средние рыночные цены</h3>
+        <p style="font-size:11px; color:var(--text-muted); margin-bottom:10px;">Цены колеблются волнами. Нажмите «Принять», чтобы привязать каталожную цену к рынку.</p>
+        <div class="card" id="marketPricesList"></div>
+    </div>
+
+    <!-- 🚤 Рейсы -->
+    <div id="in_progress" class="tab-content">
+        <button class="back-btn" onclick="switchTab('hub')">⬅️ На главную</button>
+        <h3>🚤 Управление рейсами & Автопарк</h3>
+
+        <input type="text" id="logisticsSearchInput" placeholder="🔍 Поиск по поселению, культуре, #ID или ТС..." oninput="renderProgress()">
+
+        <div class="logistics-filters" id="logisticsFiltersContainer">
+            <button class="filter-btn active" onclick="setLogisticsFilter('all', this)">Все (0)</button>
+            <button class="filter-btn" onclick="setLogisticsFilter('taken', this)">📥 В работе (0)</button>
+            <button class="filter-btn" onclick="setLogisticsFilter('packing', this)">⚙️ Комплектуются (0)</button>
+            <button class="filter-btn" onclick="setLogisticsFilter('ready', this)">📦 Готовы (0)</button>
+            <button class="filter-btn" onclick="setLogisticsFilter('loaded', this)">🚚 Загруженные (0)</button>
+            <button class="filter-btn" onclick="setLogisticsFilter('shipped', this)">🌊 В пути (0)</button>
+        </div>
+
+        <div id="progressList"></div>
+    </div>
+
+    <!-- 📊 Аналитика -->
+    <div id="analytics" class="tab-content">
+        <button class="back-btn" onclick="switchTab('hub')">⬅️ На главную</button>
+        <h3>📊 Операционный отчёт & Налоги</h3>
+        <div class="card">
+            <h4>⏰ Рабочее время холдинга</h4>
+            <div class="item-row">
+                <span>Отработано часов сегодня:</span>
+                <b id="todayWorkHours" style="color:var(--accent-gold);">0 ч. 0 мин.</b>
+            </div>
+        </div>
+
+        <div class="card">
+            <h4>🏛️ Налоговый статус (Казначейство)</h4>
+            <p style="font-size:12px; color:var(--text-muted);">Ставка налога на прибыль: <b style="color:var(--accent-gold);" id="taxRateDisplay">12%</b> в день.</p>
+            <div class="item-row">
+                <span>Уплачено налогов всего:</span>
+                <b id="totalTaxesPaid" style="color:var(--accent-red);">0 🪙</b>
+            </div>
+        </div>
+
+        <div class="card">
+            <h4>🌾 Сбор урожая за всё время</h4>
+            <div id="harvestAnalyticsList"></div>
+        </div>
+
+        <div class="card">
+            <h4>📅 Продажи за сегодня (<span id="analyticsDateDisplay">01/01/0001</span>)</h4>
+            <p style="font-size:12px; color:var(--text-muted);">Вывезено: <b id="todayTotalKg" style="color:#fff;">0 кг</b> (<span id="todayTotalPcs">0 шт</span>)</p>
+            <div id="todayCropStats"></div>
+        </div>
+    </div>
+
+    <!-- 📜 Имущество -->
+    <div id="property" class="tab-content">
+        <button class="back-btn" onclick="switchTab('hub')">⬅️ На главную</button>
+        <h3>➕ Регистрация нового имущества</h3>
+        <div class="card">
+            <label style="font-size:12px; color:var(--text-muted);">Тип объекта:</label>
+            <select id="propMainType" onchange="togglePropertyFields()">
+                <option value="transport">🚗 Транспорт / Флот</option>
+                <option value="realty">🏢 Недвижимость / Постройки и помещения</option>
+                <option value="land">🌾 Земельный участок</option>
+            </select>
+
+            <input type="text" id="propTitle" placeholder="Название объекта (например: Тягач Вольво / Ангар №1)">
+            <input type="text" id="propOwner" placeholder="Владелец (например: Иванов А.В. / Холдинг)">
+            <input type="text" id="propBuyDate" placeholder="Дата покупки (например: 12/04/0001)">
+
+            <div id="fieldsLand" style="display:none;">
+                <textarea id="landInfo" placeholder="Информация об участке и кадастре..."></textarea>
+            </div>
+
+            <div id="fieldsTransport">
+                <div class="property-grid-2">
+                    <select id="transCategory">
+                        <option value="Наземный">Наземный</option>
+                        <option value="Водный">Водный</option>
+                        <option value="Воздушный">Воздушный</option>
+                    </select>
+                    <select id="transClass">
+                        <option value="Легковой">Легковой</option>
+                        <option value="Грузовой">Грузовой</option>
+                        <option value="Спортивный">Спортивный</option>
+                        <option value="Спецтехника">Спецтехника</option>
+                    </select>
+                </div>
+                <input type="number" id="transMaxOrders" placeholder="Вместимость (макс. заказов)" value="3">
+                <div class="property-grid-2">
+                    <input type="text" id="transPlate" placeholder="Номерной знак (например: АХ 4821 ВВ)">
+                    <input type="text" id="transVin" placeholder="VIN-код (например: WDB9066351S123456)">
+                </div>
+                <div class="property-grid-2">
+                    <input type="text" id="transColor" placeholder="Цвет кузова">
+                    <input type="text" id="transEngine" placeholder="Объем/Мощность двигателя">
+                </div>
+                <select id="transFuel">
+                    <option value="Дизель">Дизель</option>
+                    <option value="Бензин">Бензин</option>
+                    <option value="Электро">Электро</option>
+                    <option value="Редстоун">Редстоун</option>
+                </select>
+            </div>
+
+            <div id="fieldsRealty" style="display:none;">
+                <div class="property-grid-2">
+                    <input type="text" id="realBlocks" placeholder="Размер в блоках (например: 38x38)">
+                    <input type="number" id="realArea" placeholder="Площадь помещения (м²)">
+                </div>
+                <div class="property-grid-2">
+                    <input type="number" id="realFloors" placeholder="Этажей">
+                    <input type="number" id="realRooms" placeholder="Количество комнат/помещений">
+                </div>
+                <textarea id="realDesc" placeholder="Подробное описание постройки, назначения и оборудования..."></textarea>
+            </div>
+
+            <button class="btn btn-purple" onclick="registerNewProperty()">📜 Зарегистрировать в Реестре</button>
+        </div>
+
+        <h3>🏛️ Государственный Реестр Имущества</h3>
+        <div id="myPropertyRegistry"></div>
+    </div>
+
+    <!-- 📑 Архив чеков -->
+    <div id="archive" class="tab-content">
+        <button class="back-btn" onclick="switchTab('hub')">⬅️ На главную</button>
+        <h3>📑 Архив выполненных чеков</h3>
+        <p style="font-size:11px; color:var(--text-muted); margin-bottom:10px;">Хронология выполненных доставок с детализацией по дням, транспорту и составу:</p>
+        <input type="text" id="archiveSearchInput" placeholder="🔍 Поиск по номеру чека, городу, ТС или культуре..." oninput="renderArchive()">
+        <div id="archiveList"></div>
+    </div>
+
+    <script>
+        const tg = window.Telegram.WebApp;
+        tg.expand();
+
+        const SUPABASE_URL = 'https://uavvdnlmnqpebhwibmmh.supabase.co';
+        const SUPABASE_KEY = 'sb_publishable_Y7pKMlyHL9U4TEAyxWr37g_ehD6U0JH';
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        let currentUsername = tg.initDataUnsafe?.user?.username || "Игрок_" + Math.floor(Math.random() * 1000);
+
+        const defaultCities = ["Камнегорск", "Сосновый Бор", "Речное Побережье", "Зелёный Дол"];
+        
+        const onlineDeliveryDestinations = [
+            { city: "Новоград", days: 1 },
+            { city: "Приозёрск", days: 2 },
+            { city: "Дубовая Роща", days: 2 },
+            { city: "Морской Порт", days: 3 },
+            { city: "Северный Аванпост", days: 4 },
+            { city: "Столичный Округ", days: 3 }
+        ];
+
+        const buyerNamesPool = ["Александр Шевченко", "Михаил Григорьев", "Елена Кравчук", "Дмитрий Бондарь", "Ольга Ткаченко", "Сергей Мороз", "Анна Мельник"];
+
+        const defaultMarketCategories = [
+            "Культуры", "Продукция", "Сладости", "Соки", "Алкоголь", "Джем / Варенье", "Выпечка", "Готовые блюда", "Прочее"
+        ];
+
+        const defaultCrops = [
+            { id: 1, name: "Тыква", priceKg: 300, currentPriceKg: 300, trend: "same", highDemand: false, weightPerPcs: 3.0, active: true, stockKg: 0, stockPcs: 0, totalHarvestedKg: 0 },
+            { id: 2, name: "Капуста", priceKg: 200, currentPriceKg: 200, trend: "same", highDemand: false, weightPerPcs: 0.8, active: true, stockKg: 0, stockPcs: 0, totalHarvestedKg: 0 },
+            { id: 3, name: "Брюква", priceKg: 180, currentPriceKg: 180, trend: "same", highDemand: false, weightPerPcs: 0.5, active: true, stockKg: 0, stockPcs: 0, totalHarvestedKg: 0 },
+            { id: 4, name: "Томат", priceKg: 250, currentPriceKg: 250, trend: "same", highDemand: true, weightPerPcs: 0.2, active: true, stockKg: 0, stockPcs: 0, totalHarvestedKg: 0 },
+            { id: 5, name: "Кукуруза", priceKg: 220, currentPriceKg: 220, trend: "same", highDemand: false, weightPerPcs: 0.25, active: true, stockKg: 0, stockPcs: 0, totalHarvestedKg: 0 },
+            { id: 6, name: "Болгарский перец", priceKg: 280, currentPriceKg: 280, trend: "same", highDemand: false, weightPerPcs: 0.15, active: true, stockKg: 0, stockPcs: 0, totalHarvestedKg: 0 },
+            { id: 7, name: "Лук", priceKg: 160, currentPriceKg: 160, trend: "same", highDemand: false, weightPerPcs: 0.1, active: true, stockKg: 0, stockPcs: 0, totalHarvestedKg: 0 },
+            { id: 8, name: "Горчица", priceKg: 350, currentPriceKg: 350, trend: "same", highDemand: false, weightPerPcs: 0.05, active: true, stockKg: 0, stockPcs: 0, totalHarvestedKg: 0 },
+            { id: 9, name: "Чёрный перец", priceKg: 400, currentPriceKg: 400, trend: "same", highDemand: false, weightPerPcs: 0.02, active: true, stockKg: 0, stockPcs: 0, totalHarvestedKg: 0 },
+            { id: 10, name: "Перец чили", priceKg: 450, currentPriceKg: 450, trend: "same", highDemand: true, weightPerPcs: 0.03, active: true, stockKg: 0, stockPcs: 0, totalHarvestedKg: 0 },
+            { id: 11, name: "Рис", priceKg: 210, currentPriceKg: 210, trend: "same", highDemand: false, weightPerPcs: 0.05, active: true, stockKg: 0, stockPcs: 0, totalHarvestedKg: 0 }
+        ];
+
+        const defaultProducts = [
+            { id: 501, name: "Томатный сок (1 л)", price: 500, weightPerPcs: 1.0, active: true, stockKg: 0, stockPcs: 0 },
+            { id: 502, name: "Тыквенное масло", price: 800, weightPerPcs: 0.5, active: true, stockKg: 0, stockPcs: 0 }
+        ];
+
+        const bazaarOffers = {
+            farm: [
+                { id: "bf1", name: "Семена Томата (Farmer's Delight)", price: 120, seller: "Торговец семенами #104", desc: "Урожайный сорт томатов из Farmer's Delight." },
+                { id: "bf2", name: "Семена Капусты (Farmer's Delight)", price: 110, seller: "Агроном Лавки #12", desc: "Крепкие кочаны, быстро идут в рост." },
+                { id: "bf3", name: "Семена Лука (Farmer's Delight)", price: 90, seller: "Торговец семенами #88", desc: "Отборный репчатый лук." },
+                { id: "bf4", name: "Семена Риса (Farmer's Delight)", price: 140, seller: "Поставщик из Дельты", desc: "Высаживается прямо на мелководье." },
+                { id: "bf5", name: "Семена Латука (Croptopia)", price: 130, seller: "Ботаник из Дола", desc: "Хрустящий салат-латук." },
+                { id: "bf6", name: "Саженец Авокадо (Croptopia)", price: 350, seller: "Южный Питомник", desc: "Плодоносное дерево ценного авокадо." },
+                { id: "bf7", name: "Саженец Манго (Croptopia)", price: 400, seller: "Южный Питомник", desc: "Сладкие плоды, высокая рыночная цена." }
+            ],
+            livestock: [
+                { id: "bl1", name: "🐮 Корова (Minecraft)", price: 1100, seller: "Животновод #3", desc: "Источник молока, говядины и кожи." },
+                { id: "bl2", name: "🍄 Грибная корова (Minecraft)", price: 3200, seller: "Таинственный заводчик", desc: "Редкий мухоморный моб. Дает грибной суп." },
+                { id: "bl3", name: "🐔 Курица (Minecraft)", price: 300, seller: "Птицеферма #7", desc: "Стабильный сбор свежих яиц." },
+                { id: "bl4", name: "🐖 Свинья (Minecraft)", price: 850, seller: "Свиноводческая база", desc: "Быстрый набор массы для мясокомбината." },
+                { id: "bl5", name: "🐑 Овца (Minecraft)", price: 950, seller: "Горное пастбище", desc: "Густая шерсть для текстиля." },
+                { id: "bl6", name: "🦙 Лама (Minecraft)", price: 1800, seller: "Караванщик", desc: "Навьючивается сундуками для караванов." },
+                { id: "bl7", name: "🐴 Лошадь (Minecraft)", price: 2300, seller: "Конный двор", desc: "Высокая скорость верховой езды." }
+            ],
+            tools: [
+                { id: "bt1", name: "🔪 Кухонный Нож (Farmer's Delight)", price: 280, seller: "Кузнечная артель", desc: "Необходим для разделки мяса и нарезки." },
+                { id: "bt2", name: "🪓 Незеритовый серп", price: 1200, seller: "Мастерская оружейника", desc: "Скашивает созревшие поля 3х3 блока за раз." },
+                { id: "bt3", name: "🪣 Медный доильный аппарат", price: 1400, seller: "Цех инженерии", desc: "Автоматизированная дойка коров." },
+                { id: "bt4", name: "✂️ Алмазные ножницы для шерсти", price: 550, seller: "Инструментальный ряд", desc: "Стрижет овец с максимальным выходом шерсти." }
+            ]
+        };
+
+        let day = parseInt(localStorage.getItem('zd_day')) || 1;
+        let dayRevenue = parseInt(localStorage.getItem('zd_dayRevenue')) || 0;
+        let dayOrders = parseInt(localStorage.getItem('zd_dayOrders')) || 0;
+        let totalBalance = parseInt(localStorage.getItem('zd_totalBalance')) || 4785;
+        let orderCounter = parseInt(localStorage.getItem('zd_orderCounter')) || 12;
+        let companyRating = parseFloat(localStorage.getItem('zd_companyRating')) || 5.0;
+        let totalTaxesPaid = parseInt(localStorage.getItem('zd_totalTaxesPaid')) || 0;
+        let workMinutesToday = parseInt(localStorage.getItem('zd_workMinutesToday')) || 0;
+        let currentTaxRate = parseFloat(localStorage.getItem('zd_currentTaxRate')) || 0.12;
+
+        let activeLoanObj = JSON.parse(localStorage.getItem('zd_activeLoanObj')) || null;
+        let activeDeposit = parseInt(localStorage.getItem('zd_activeDeposit')) || 0;
+        let myStocks = JSON.parse(localStorage.getItem('zd_myStocks')) || {};
+        let purchaseReceipts = JSON.parse(localStorage.getItem('zd_purchaseReceipts')) || [];
+        let products = JSON.parse(localStorage.getItem('zd_products')) || defaultProducts;
+
+        let fopData = JSON.parse(localStorage.getItem('zd_fopData')) || {
+            isRegistered: true,
+            title: "ФОП Агро-Холдинг «Зелёный Дол»",
+            edrpou: "44019283",
+            iban: "UA82300001000002600192837401",
+            group: "3-я группа (5% налог)",
+            regDate: "01/01/0001"
+        };
+
+        let bankTransfers = JSON.parse(localStorage.getItem('zd_bankTransfers')) || [];
+        let onlineStoreOrders = JSON.parse(localStorage.getItem('zd_onlineStoreOrders')) || [];
+        let fopIncomingPayments = JSON.parse(localStorage.getItem('zd_fopIncomingPayments')) || [];
+
+        let marketCategories = JSON.parse(localStorage.getItem('zd_marketCategories')) || defaultMarketCategories;
+        let currentMarketCategoryFilter = 'all';
+
+        let marketplaceListings = JSON.parse(localStorage.getItem('zd_marketplaceListings')) || [
+            { id: 101, sourceName: "Томат", category: "Культуры", type: "crop", unitType: "kg", minOrder: 0.5, price: 280, desc: "Свежие спелые томаты прямо с грядок", img: "🍅", isListingActive: true },
+            { id: 102, sourceName: "Томатный сок (1 л)", category: "Соки", type: "product", unitType: "pcs", minOrder: 1, price: 550, desc: "Натуральный густой томатный сок без добавок", img: "🥫", isListingActive: true }
+        ];
+
+        let stocksCatalog = [
+            { id: "agro", name: "АгроХодинг «Север»", price: 1000, dividend: 0.04 },
+            { id: "ship", name: "Судоходство «Волна»", price: 2500, dividend: 0.06 },
+            { id: "bank", name: "Банк «Зелёный Дол»", price: 5000, dividend: 0.08 }
+        ];
+
+        let cities = JSON.parse(localStorage.getItem('zd_cities')) || defaultCities;
+        let crops = JSON.parse(localStorage.getItem('zd_crops')) || defaultCrops;
+        let marketOrders = JSON.parse(localStorage.getItem('zd_marketOrders')) || [];
+        let inProgressOrders = JSON.parse(localStorage.getItem('zd_inProgressOrders')) || [];
+        let archive = JSON.parse(localStorage.getItem('zd_archive')) || [];
+        let dayTaxesHistory = JSON.parse(localStorage.getItem('zd_dayTaxesHistory')) || {};
+        let myProperties = JSON.parse(localStorage.getItem('zd_myProperties')) || [
+            { id: 101, mainType: "transport", title: "Торговый Баркас", owner: "Холдинг «Зелёный Дол»", buyDate: "01/01/0001", regDate: "01/01/0001", regCode: "REG-100001", transCategory: "Водный", transClass: "Грузовой", transMaxOrders: 5, transColor: "Деревянный", transVin: "BRK-01-8849", transPlate: "BOAT-1", transEngine: "Парусный редстоун", transFuel: "Редстоун", isEnRoute: false, totalDeliveredCount: 0 }
+        ];
+        let newsList = JSON.parse(localStorage.getItem('zd_newsList')) || [
+            { title: "📰 Основание агро-холдинга", body: "«Зелёный Дол» официально зарегистрирован и начинает торговые рейсы!", dateStr: "01/01/0001" }
+        ];
+        let reviews = JSON.parse(localStorage.getItem('zd_reviews')) || [
+            { author: "Мэрия Соснового Бора", text: "Отличный агро-холдинг! Всегда свежий томат и капуста.", stars: 5, dateStr: "01/01/0001" }
+        ];
+
+        let bazaarChatMessages = JSON.parse(localStorage.getItem('zd_bazaarChatMessages')) || [
+            { sender: "Лавка Фермера", text: "Свежие партии семян томата и капусты уже на прилавке!", time: "09:00" },
+            { sender: "Скотоводческий ряд", text: "Привезли упитанных коров и овец, разбирайте!", time: "09:45" }
+        ];
+
+        let currentLogisticsFilter = 'all';
+        let currentBazaarCategory = 'farm';
+
+        function formatDate(dayNum) {
+            let totalDays = dayNum - 1;
+            let years = Math.floor(totalDays / 360);
+            let remDays = totalDays % 360;
+            let months = Math.floor(remDays / 30);
+            let days = remDays % 30 + 1;
+
+            let dd = String(days).padStart(2, '0');
+            let mm = String(months + 1).padStart(2, '0');
+            let yyyy = String(years + 1).padStart(4, '0');
+            return `${dd}/${mm}/${yyyy}`;
+        }
+
+        function formatWaitTimeBadge(createdAtTs) {
+            if (!createdAtTs) return `<span class="time-badge">⏱️ Свежий</span>`;
+            let diffMins = Math.floor((Date.now() - createdAtTs) / 60000);
+            if (diffMins < 1) return `<span class="time-badge" style="color:var(--accent-green); background:rgba(46,204,113,0.15);">⏱️ Только что</span>`;
+            if (diffMins < 5) return `<span class="time-badge">⏱️ Ждёт ${diffMins} мин.</span>`;
+            if (diffMins < 10) return `<span class="time-badge" style="color:var(--accent-gold); border:1px solid rgba(241,196,15,0.4);">⏱️ Ждёт ${diffMins} мин.</span>`;
+            return `<span class="time-badge time-urgent">🔥 Срочно! Ждёт ${diffMins} мин.</span>`;
+        }
+
+        function saveData() {
+            localStorage.setItem('zd_day', day);
+            localStorage.setItem('zd_dayRevenue', dayRevenue);
+            localStorage.setItem('zd_dayOrders', dayOrders);
+            localStorage.setItem('zd_totalBalance', totalBalance);
+            localStorage.setItem('zd_orderCounter', orderCounter);
+            localStorage.setItem('zd_companyRating', companyRating);
+            localStorage.setItem('zd_totalTaxesPaid', totalTaxesPaid);
+            localStorage.setItem('zd_workMinutesToday', workMinutesToday);
+            localStorage.setItem('zd_currentTaxRate', currentTaxRate);
+            localStorage.setItem('zd_activeLoanObj', JSON.stringify(activeLoanObj));
+            localStorage.setItem('zd_activeDeposit', activeDeposit);
+            localStorage.setItem('zd_myStocks', JSON.stringify(myStocks));
+            localStorage.setItem('zd_purchaseReceipts', JSON.stringify(purchaseReceipts));
+            localStorage.setItem('zd_products', JSON.stringify(products));
+            localStorage.setItem('zd_fopData', JSON.stringify(fopData));
+            localStorage.setItem('zd_bankTransfers', JSON.stringify(bankTransfers));
+            localStorage.setItem('zd_onlineStoreOrders', JSON.stringify(onlineStoreOrders));
+            localStorage.setItem('zd_fopIncomingPayments', JSON.stringify(fopIncomingPayments));
+            localStorage.setItem('zd_marketCategories', JSON.stringify(marketCategories));
+            localStorage.setItem('zd_marketplaceListings', JSON.stringify(marketplaceListings));
+            localStorage.setItem('zd_cities', JSON.stringify(cities));
+            localStorage.setItem('zd_crops', JSON.stringify(crops));
+            localStorage.setItem('zd_marketOrders', JSON.stringify(marketOrders));
+            localStorage.setItem('zd_inProgressOrders', JSON.stringify(inProgressOrders));
+            localStorage.setItem('zd_archive', JSON.stringify(archive));
+            localStorage.setItem('zd_dayTaxesHistory', JSON.stringify(dayTaxesHistory));
+            localStorage.setItem('zd_myProperties', JSON.stringify(myProperties));
+            localStorage.setItem('zd_reviews', JSON.stringify(reviews));
+            localStorage.setItem('zd_newsList', JSON.stringify(newsList));
+            localStorage.setItem('zd_bazaarChatMessages', JSON.stringify(bazaarChatMessages));
+        }
+
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+            document.getElementById(tabId).classList.add('active');
+            window.scrollTo(0, 0);
+
+            if (tabId === 'online_store') renderOnlineStore();
+            if (tabId === 'analytics') renderAnalytics();
+            if (tabId === 'bookkeeping') renderBookkeeping();
+            if (tabId === 'property') renderPropertyRegistry();
+            if (tabId === 'crops') renderCrops();
+            if (tabId === 'products') renderProducts();
+            if (tabId === 'prices') renderPrices();
+            if (tabId === 'harvest') renderHarvestTab();
+            if (tabId === 'market') renderMarket();
+            if (tabId === 'shopping_bazaar') renderBazaar();
+            if (tabId === 'in_progress') renderProgress();
+            if (tabId === 'active_fleet') renderFleetStatus();
+            if (tabId === 'cities') renderCities();
+            if (tabId === 'news') renderNews();
+            if (tabId === 'reviews') renderReviews();
+            if (tabId === 'archive') renderArchive();
+            if (tabId === 'bank') renderBank();
+            if (tabId === 'purchases') renderPurchases();
+            if (tabId === 'auctions') loadAuctions();
+            if (tabId === 'p2p_bank') loadP2PHistory();
+            if (tabId === 'hub') updateUI();
+        }
+
+        
+        // --- 🌐 СЕТЕВЫЕ ФУНКЦИИ MMO (SUPABASE) ---
+        async function syncWithCloud() {
+            alert("🔄 Синхронизация с облаком Supabase выполнена успешно!");
+            loadAuctions();
+            loadP2PHistory();
+        }
+
+        async function createAuctionLot() {
+            let title = document.getElementById('aucTitle').value.trim();
+            let category = document.getElementById('aucCategory').value.trim() || "Общее";
+            let image = document.getElementById('aucImage').value.trim() || "https://images.unsplash.com/photo-1523348837708-15d4a09cfac2";
+            let amount = parseFloat(document.getElementById('aucAmount').value) || 1;
+            let minBid = parseInt(document.getElementById('aucMinBid').value) || 100;
+
+            if (!title) return alert("Введите название лота!");
+
+            const { data, error } = await supabase.from('auctions').insert([
+                { seller_name: currentUsername, item_title: title, category: category, image_url: image, amount: amount, min_bid: minBid, current_bid: minBid, highest_bidder: 'Нет ставок', is_active: true }
+            ]);
+
+            if (error) {
+                alert("Ошибка создания лота: " + error.message);
+            } else {
+                alert("🎉 Лот успешно выставлен на мировой аукцион!");
+                document.getElementById('aucTitle').value = "";
+                loadAuctions();
+            }
+        }
+
+        async function loadAuctions() {
+            const container = document.getElementById('globalAuctionsList');
+            if (!container) return;
+            container.innerHTML = "Загрузка торгов из облака...";
+
+            const { data, error } = await supabase.from('auctions').select('*').eq('is_active', true);
+            if (error) {
+                container.innerHTML = "Ошибка загрузки аукционов.";
+                return;
+            }
+
+            if (!data || data.length === 0) {
+                container.innerHTML = "<p style='font-size:12px; color:var(--text-muted);'>Активных лотов на аукционе пока нет. Создайте первый!</p>";
+                return;
+            }
+
+            container.innerHTML = "";
+            data.forEach(lot => {
+                container.innerHTML += `
+                    <div class="card" style="border-left:4px solid var(--accent-purple);">
+                        <img src="${lot.image_url}" style="width:100%; height:120px; object-fit:cover; border-radius:8px; background:#111;" onerror="this.style.display='none'">
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-top:6px;">
+                            <b>${lot.item_title} (${lot.amount} шт)</b>
+                            <span class="category-badge">${lot.category}</span>
+                        </div>
+                        <div style="font-size:11px; color:var(--text-muted); margin:4px 0;">Продавец: <b>${lot.seller_name}</b></div>
+                        <div style="font-size:12px; color:var(--accent-gold);">Текущая ставка: <b>${lot.current_bid} 🪙</b> (Лидер: ${lot.highest_bidder})</div>
+                        <button class="btn btn-gold btn-sm" style="margin-top:8px;" onclick="placeBid('${lot.id}', ${lot.current_bid})">⚡ Сделать ставку (+100 🪙)</button>
+                    </div>`;
+            });
+        }
+
+        async function placeBid(lotId, currentBid) {
+            let newBid = currentBid + 100;
+            const { error } = await supabase.from('auctions').update({ current_bid: newBid, highest_bidder: currentUsername }).eq('id', lotId);
+            if (error) {
+                alert("Ошибка ставки: " + error.message);
+            } else {
+                alert(`⚡ Ставка ${newBid} 🪙 успешно принята!`);
+                loadAuctions();
+            }
+        }
+
+        async function sendP2PTransfer() {
+            let recipient = document.getElementById('p2pRecipient').value.trim();
+            let amount = parseInt(document.getElementById('p2pAmount').value);
+            let note = document.getElementById('p2pNote').value.trim();
+
+            if (!recipient || !amount || amount <= 0) return alert("Введите получателя и корректную сумму!");
+            if (totalBalance < amount) return alert("Недостаточно средств в кассе для P2P-перевода!");
+
+            totalBalance -= amount;
+
+            const { error } = await supabase.from('p2p_transfers').insert([
+                { sender_name: currentUsername, recipient: recipient, amount: amount, note: note }
+            ]);
+
+            if (error) {
+                totalBalance += amount;
+                alert("Ошибка перевода: " + error.message);
+            } else {
+                alert(`💸 Перевод на сумму ${amount} 🪙 успешно отправлен игроку ${recipient}!`);
+                document.getElementById('p2pRecipient').value = "";
+                document.getElementById('p2pAmount').value = "";
+                document.getElementById('p2pNote').value = "";
+                saveData();
+                updateUI();
+                loadP2PHistory();
+            }
+        }
+
+        async function loadP2PHistory() {
+            const container = document.getElementById('p2pHistoryList');
+            if (!container) return;
+            container.innerHTML = "Загрузка транзакций...";
+
+            const { data, error } = await supabase.from('p2p_transfers').select('*').order('created_at', { ascending: false }).limit(15);
+            if (error) {
+                container.innerHTML = "Ошибка загрузки истории переводов.";
+                return;
+            }
+
+            if (!data || data.length === 0) {
+                container.innerHTML = "<p style='font-size:12px; color:var(--text-muted);'>История переводов пока пуста.</p>";
+                return;
+            }
+
+            container.innerHTML = "";
+            data.forEach(tx => {
+                let isMe = tx.sender_name === currentUsername;
+                let isTarget = tx.recipient === currentUsername;
+                
+                let valHtml = `<div style="color:var(--text-color); font-weight:bold;">${tx.amount} 🪙</div>`;
+                if (isMe) valHtml = `<div style="color:var(--accent-red); font-weight:bold;">-${tx.amount} 🪙</div>`;
+                if (isTarget) valHtml = `<div style="color:var(--accent-green); font-weight:bold;">+${tx.amount} 🪙</div>`;
+
+                container.innerHTML += `
+                    <div class="item-row">
+                        <div>
+                            <b>${tx.sender_name} ➔ ${tx.recipient}</b><br>
+                            <span style="font-size:10px; color:var(--text-muted);">${tx.note || 'Без назначения'}</span>
+                        </div>
+                        ${valHtml}
+                    </div>`;
+            });
+        }
+
+        function askAiAdvice() {
+            const adviceBox = document.getElementById('aiAdviceOutput');
+            adviceBox.style.display = 'block';
+            const tips = [
+                "🤖 Совет ИИ: Сейчас выгодно скупать зерновые на аукционах, ожидается рост цен на 15% к концу недели.",
+                "🤖 Совет ИИ: Проверь счета ФОП — у тебя накопился хороший резерв для расширения локальных цехов.",
+                "🤖 Совет ИИ: Ставки на редкую технику на мировом аукционе бьют рекорды. Отличный момент выставить излишки!",
+                "🤖 Совет ИИ: Все транзакции по P2P-банку проходят стабильно. Рисков ликвидности не обнаружено."
+            ];
+            const randomTip = tips[Math.floor(Math.random() * tips.length)];
+            adviceBox.innerText = randomTip;
+        }
+
+        // --- 🌐 ПОДВКЛАДКИ ОНЛАЙН-МАГАЗИНА ---
+
+        function switchStoreSubTab(subTab) {
+            document.getElementById('storeViewShowcase').style.display = subTab === 'showcase' ? 'block' : 'none';
+            document.getElementById('storeViewAdd').style.display = subTab === 'add' ? 'block' : 'none';
+            document.getElementById('storeViewOrders').style.display = subTab === 'orders' ? 'block' : 'none';
+
+            document.getElementById('btnStoreTabShowcase').classList.toggle('active', subTab === 'showcase');
+            document.getElementById('btnStoreTabAdd').classList.toggle('active', subTab === 'add');
+            document.getElementById('btnStoreTabOrders').classList.toggle('active', subTab === 'orders');
+
+            if (subTab === 'showcase') renderMarketplaceShowcase();
+            if (subTab === 'add') renderMarketplaceAddOptions();
+            if (subTab === 'orders') renderStoreOrders();
+        }
+
+        function promptAddNewCategory() {
+            let catName = prompt("Введите название новой категории/статуса товара (например: Сыры):");
+            if (catName && catName.trim() !== "") {
+                let trimmed = catName.trim();
+                if (!marketCategories.includes(trimmed)) {
+                    marketCategories.push(trimmed);
+                    saveData();
+                    renderMarketplaceAddOptions();
+                    renderMarketplaceShowcase();
+                    alert(`✅ Категория "${trimmed}" добавлена в список!`);
+                } else {
+                    alert("Такая категория уже существует!");
+                }
+            }
+        }
+
+        function setMarketCategoryFilter(cat, btnEl) {
+            currentMarketCategoryFilter = cat;
+            document.querySelectorAll('#storeCategoryFiltersContainer .filter-btn').forEach(el => el.classList.remove('active'));
+            if (btnEl) btnEl.classList.add('active');
+            renderMarketplaceShowcase();
+        }
+
+        function renderOnlineStore() {
+            document.getElementById('storeOrdersCounterBadge').innerText = onlineStoreOrders.length;
+            renderMarketplaceAddOptions();
+            renderMarketplaceShowcase();
+            renderStoreOrders();
+        }
+
+        function toggleMarketplaceAddType() {
+            let searchInp = document.getElementById('marketAddSearchInput');
+            if (searchInp) searchInp.value = "";
+            renderMarketplaceAddOptions();
+        }
+
+        function renderMarketplaceAddOptions() {
+            const typeSelect = document.getElementById('marketItemTypeSelect');
+            const searchInput = document.getElementById('marketAddSearchInput');
+            const select = document.getElementById('marketSourceItemSelect');
+            const catSelect = document.getElementById('marketCategorySelect');
+            if (!select || !typeSelect || !catSelect) return;
+
+            catSelect.innerHTML = "";
+            marketCategories.forEach(cat => {
+                catSelect.innerHTML += `<option value="${cat}">${cat}</option>`;
+            });
+
+            const selectedType = typeSelect.value;
+            const query = (searchInput ? searchInput.value : '').toLowerCase().trim();
+            select.innerHTML = "";
+
+            if (selectedType === 'crop') {
+                let filtered = crops.filter(c => c.active !== false && c.name.toLowerCase().includes(query));
+                filtered.forEach(c => {
+                    select.innerHTML += `<option value="crop_${c.id}">🌾 ${c.name} (Баз: ${c.priceKg} 🪙/кг)</option>`;
+                });
+                if (filtered.length === 0) select.innerHTML = `<option value="">Ничего не найдено</option>`;
+            } else {
+                let filtered = products.filter(p => p.active !== false && p.name.toLowerCase().includes(query));
+                filtered.forEach(p => {
+                    select.innerHTML += `<option value="product_${p.id}">🥫 ${p.name} (Баз: ${p.price} 🪙)</option>`;
+                });
+                if (filtered.length === 0) select.innerHTML = `<option value="">Ничего не найдено</option>`;
+            }
+        }
+
+        function addMarketplaceListing() {
+            const val = document.getElementById('marketSourceItemSelect').value;
+            const category = document.getElementById('marketCategorySelect').value || "Прочее";
+            const unitType = document.getElementById('marketUnitTypeSelect').value;
+            const price = parseInt(document.getElementById('marketCustomPriceInput').value);
+            const minOrder = parseFloat(document.getElementById('marketMinOrderInput').value) || 1.0;
+            const desc = document.getElementById('marketItemDescInput').value.trim() || "Свежая продукция холдинга «Зелёный Дол»";
+            const img = document.getElementById('marketItemImgInput').value.trim() || "📦";
+
+            if (!val || val === "") return alert("Выберите позицию из списка!");
+            if (isNaN(price) || price <= 0) return alert("Укажите корректную цену товара на маркетплейсе!");
+            if (isNaN(minOrder) || minOrder <= 0) return alert("Минимальный заказ должен быть больше 0 (например: 0.1 кг или 1 шт)!");
+
+            let [type, idStr] = val.split('_');
+            let id = parseInt(idStr);
+            let sourceItem = type === 'crop' ? crops.find(c => c.id === id) : products.find(p => p.id === id);
+
+            if (!sourceItem) return;
+
+            marketplaceListings.unshift({
+                id: Date.now(),
+                sourceName: sourceItem.name,
+                category: category,
+                type: type,
+                unitType: unitType,
+                minOrder: minOrder,
+                price: price,
+                desc: desc,
+                img: img,
+                isListingActive: true
+            });
+
+            document.getElementById('marketCustomPriceInput').value = "";
+            document.getElementById('marketItemDescInput').value = "";
+            document.getElementById('marketItemImgInput').value = "";
+
+            saveData();
+            switchStoreSubTab('showcase');
+            alert(`🎉 Товар "${sourceItem.name}" выставлен на витрину в категорию [${category}]!`);
+        }
+
+        function toggleListingActiveStatus(id) {
+            let item = marketplaceListings.find(x => x.id === id);
+            if (!item) return;
+
+            item.isListingActive = (item.isListingActive === false) ? true : false;
+            saveData();
+            renderMarketplaceShowcase();
+        }
+
+        function deleteMarketplaceListing(id) {
+            if (confirm("Снять этот товар с маркетплейса?")) {
+                marketplaceListings = marketplaceListings.filter(x => x.id !== id);
+                saveData();
+                renderMarketplaceShowcase();
+            }
+        }
+
+        function formatMinOrder(minVal, unitType) {
+            if (unitType === 'pcs') return `${minVal} шт`;
+            if (minVal < 1) {
+                let grams = Math.round(minVal * 1000);
+                return `${minVal} кг (${grams} г)`;
+            }
+            return `${minVal} кг`;
+        }
+
+        function editMarketplaceListing(id) {
+            let item = marketplaceListings.find(x => x.id === id);
+            if (!item) return;
+
+            let unitName = (item.unitType === 'pcs') ? '1 шт' : '1 кг';
+            let newPrice = prompt(`Изменить розничную цену за ${unitName} для "${item.sourceName}":`, item.price);
+            if (newPrice !== null && !isNaN(newPrice) && parseInt(newPrice) > 0) {
+                item.price = parseInt(newPrice);
+                
+                let catOptionsStr = marketCategories.map((c, i) => `${i + 1}. ${c}`).join('\n');
+                let catChoice = prompt(`Выберите номер новой категории для "${item.sourceName}":\n\n${catOptionsStr}\n\n(Текущая: ${item.category || 'Прочее'})`);
+                if (catChoice !== null) {
+                    let catIdx = parseInt(catChoice) - 1;
+                    if (!isNaN(catIdx) && catIdx >= 0 && catIdx < marketCategories.length) {
+                        item.category = marketCategories[catIdx];
+                    }
+                }
+
+                let newMin = prompt(`Изменить минимальный объём заказа (можно дробно, например: 0.1 для 100 г):`, item.minOrder || 1);
+                if (newMin !== null && !isNaN(newMin) && parseFloat(newMin) > 0) item.minOrder = parseFloat(newMin);
+
+                let newDesc = prompt("Изменить описание товара:", item.desc);
+                if (newDesc !== null && newDesc.trim() !== "") item.desc = newDesc.trim();
+                let newImg = prompt("Изменить ссылку на фото / эмодзи:", item.img);
+                if (newImg !== null && newImg.trim() !== "") item.img = newImg.trim();
+
+                saveData();
+                renderMarketplaceShowcase();
+                alert("Карточка товара на маркетплейсе обновлена!");
+            }
+        }
+
+        function renderMarketplaceShowcase() {
+            const grid = document.getElementById('marketplaceShowcaseGrid');
+            const filtersContainer = document.getElementById('storeCategoryFiltersContainer');
+            if (!grid) return;
+
+            if (filtersContainer) {
+                let filterHtml = `<button class="filter-btn ${currentMarketCategoryFilter === 'all' ? 'active' : ''}" onclick="setMarketCategoryFilter('all', this)">Все категории</button>`;
+                marketCategories.forEach(cat => {
+                    filterHtml += `<button class="filter-btn ${currentMarketCategoryFilter === cat ? 'active' : ''}" onclick="setMarketCategoryFilter('${cat}', this)">${cat}</button>`;
+                });
+                filtersContainer.innerHTML = filterHtml;
+            }
+
+            const query = (document.getElementById('storeSearchInput') ? document.getElementById('storeSearchInput').value : '').toLowerCase().trim();
+            grid.innerHTML = "";
+
+            let filtered = marketplaceListings.filter(l => {
+                if (currentMarketCategoryFilter !== 'all' && (l.category || "Прочее") !== currentMarketCategoryFilter) return false;
+                if (!query) return true;
+                return l.sourceName.toLowerCase().includes(query) || l.desc.toLowerCase().includes(query) || (l.category && l.category.toLowerCase().includes(query));
+            });
+
+            if (filtered.length === 0) {
+                grid.innerHTML = "<p style='font-size:12px; color:var(--text-muted); grid-column:span 2; text-align:center; padding:15px;'>В выбранной категории нет товаров или ничего не найдено по поиску.</p>";
+                return;
+            }
+
+            filtered.forEach(item => {
+                let stockAmountKg = 0;
+                let stockAmountPcs = 0;
+                let isCrop = item.type === 'crop';
+                if (isCrop) {
+                    let c = crops.find(x => x.name === item.sourceName);
+                    stockAmountKg = c ? (c.stockKg || 0) : 0;
+                    stockAmountPcs = c ? (c.stockPcs || 0) : 0;
+                } else {
+                    let p = products.find(x => x.name === item.sourceName);
+                    stockAmountKg = p ? (p.stockKg || 0) : 0;
+                    stockAmountPcs = p ? (p.stockPcs || 0) : 0;
+                }
+
+                let inStock = stockAmountKg > 0;
+                let isCardActive = item.isListingActive !== false;
+
+                let stockBadge = "";
+                if (!isCardActive) {
+                    stockBadge = `<span class="toggle-disabled" style="font-size:10px; padding:2px 6px; border-radius:4px;">⏸️ На паузе (Выключен)</span>`;
+                } else if (inStock) {
+                    stockBadge = `<span class="status-badge-ok" style="font-size:10px;">🟢 В наличии (${stockAmountKg} кг / ${stockAmountPcs} шт)</span>`;
+                } else {
+                    stockBadge = `<span class="status-badge-no" style="font-size:10px;">🔴 Нет в наличии</span>`;
+                }
+
+                let imgHtml = "";
+                if (item.img.startsWith("http://") || item.img.startsWith("https://")) {
+                    imgHtml = `<img src="${item.img}" class="market-item-img" alt="${item.sourceName}" onerror="this.outerHTML='<div class=\\'market-item-img\\'>📦</div>'">`;
+                } else {
+                    imgHtml = `<div class="market-item-img">${item.img}</div>`;
+                }
+
+                let unitLabel = item.unitType === 'pcs' ? 'шт' : 'кг';
+                let minOrderFormatted = formatMinOrder(item.minOrder || 1, item.unitType);
+
+                grid.innerHTML += `
+                    <div class="market-item-card" style="${!isCardActive ? 'opacity: 0.7;' : ''}">
+                        <div>
+                            ${imgHtml}
+                            <div style="display:flex; justify-content:space-between; align-items:start;">
+                                <b style="font-size:13px;">${item.sourceName}</b>
+                                <b style="color:var(--accent-gold); font-size:13px;">${item.price} 🪙/${unitLabel}</b>
+                            </div>
+                            <div style="display:flex; gap:4px; align-items:center; margin:4px 0;">
+                                <span class="category-badge">${item.category || 'Прочее'}</span>
+                                ${stockBadge}
+                            </div>
+                            <div style="font-size:10px; color:var(--accent-purple); font-weight:bold; margin-bottom:3px;">
+                                📦 Заказ: от ${minOrderFormatted}
+                            </div>
+                            <p style="font-size:11px; color:var(--text-muted); margin:4px 0; line-height:1.3;">${item.desc}</p>
+                        </div>
+                        <div style="display:flex; flex-direction:column; gap:4px; margin-top:8px;">
+                            <button class="toggle-btn ${isCardActive ? 'toggle-active' : 'toggle-disabled'}" onclick="toggleListingActiveStatus(${item.id})">
+                                ${isCardActive ? '🟢 В продаже' : '⏸️ Включить'}
+                            </button>
+                            <div style="display:flex; gap:6px;">
+                                <button class="btn btn-blue btn-sm" style="flex:1;" onclick="editMarketplaceListing(${item.id})">✏️ Изменить</button>
+                                <button class="btn btn-danger btn-sm" onclick="deleteMarketplaceListing(${item.id})">🗑️</button>
+                            </div>
+                        </div>
+                    </div>`;
+            });
+        }
+
+        function renderStoreOrders() {
+            const ordersContainer = document.getElementById('storeOrdersList');
+            if (!ordersContainer) return;
+
+            document.getElementById('storeOrdersCounterBadge').innerText = onlineStoreOrders.length;
+            ordersContainer.innerHTML = "";
+            if (onlineStoreOrders.length === 0) {
+                ordersContainer.innerHTML = "<p style='font-size:12px; color:var(--text-muted); padding:10px;'>Входящих интернет-заказов пока нет. Клиенты оформляют заказы сами в реальном времени!</p>";
+                return;
+            }
+
+            onlineStoreOrders.forEach(o => {
+                let payBadge = "";
+                let payBtn = "";
+
+                if (o.paymentType === 'cod') {
+                    if (!o.isPrepaid) {
+                        payBadge = `<span class="status-badge-no">⏳ Ожидает предоплату 100 🪙</span>`;
+                        payBtn = `<button class="btn btn-gold btn-sm" onclick="verifyFopCodPrepay('${o.uniqueCode}')">🔍 Сверить предоплату 100 🪙</button>`;
+                    } else {
+                        payBadge = `<span class="status-badge-ok">📦 Наложка (100 🪙 на ФОП получено)</span>`;
+                        payBtn = `<button class="btn btn-blue btn-sm" onclick="sendOnlineOrderToLogistics('${o.uniqueCode}')">➡️ В рейсы на комплектацию</button>`;
+                    }
+                } else {
+                    if (!o.isPaid) {
+                        payBadge = `<span class="status-badge-no">⏳ Ожидает 100% оплаты</span>`;
+                        payBtn = `<button class="btn btn-gold btn-sm" onclick="verifyFopFullPayment('${o.uniqueCode}')">🔍 Сверить выписку ФОП</button>`;
+                    } else {
+                        payBadge = `<span class="status-badge-ok">✅ Полная оплата на ФОП</span>`;
+                        payBtn = `<button class="btn btn-blue btn-sm" onclick="sendOnlineOrderToLogistics('${o.uniqueCode}')">➡️ В рейсы на комплектацию</button>`;
+                    }
+                }
+
+                let itemsDetailed = o.items.map(i => `• <b>${i.name}</b>: ${i.kg} кг (${i.pcs} шт)`).join("<br>");
+                let timeWaitBadge = formatWaitTimeBadge(o.timestampCreated);
+
+                ordersContainer.innerHTML += `
+                    <div class="card" style="border-left:4px solid var(--accent-blue); margin-bottom:10px;">
+                        <div style="display:flex; justify-content:space-between; align-items:center;">
+                            <div>
+                                <b>#${o.uniqueCode} <span class="online-tag">🌐 ONLINE</span></b>
+                                <div style="margin-top:2px;">${timeWaitBadge} <span style="font-size:10px; color:var(--text-muted);">в ${o.timeCreated || ''}</span></div>
+                            </div>
+                            <b style="color:var(--accent-gold); font-size:14px;">${o.totalPrice.toLocaleString()} 🪙</b>
+                        </div>
+                        <div style="font-size:11px; color:#fff; margin:6px 0 4px;">
+                            👤 <b>Получатель:</b> ${o.buyerName} | 📍 <b>Город:</b> ${o.destCity} (В пути: ${o.deliveryDays} дн.)
+                        </div>
+                        <div style="font-size:10px; color:var(--accent-purple); margin-bottom:4px;">
+                            💳 Способ оплаты: <b>${o.paymentType === 'cod' ? 'Наложенный платёж (Предоплата 100 🪙)' : '100% Оплата на ФОП'}</b>
+                        </div>
+                        <div style="font-size:11px; background:rgba(255,255,255,0.03); padding:6px; border-radius:6px; margin:6px 0; line-height:1.4;">
+                            ${itemsDetailed}
+                        </div>
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-top:8px;">
+                            <div>${payBadge}</div>
+                            <div>${payBtn}</div>
+                        </div>
+                    </div>`;
+            });
+        }
+
+        // --- ⚡ ДИНАМИЧЕСКИЙ СПАВН ЗАКАЗОВ В РЕАЛЬНОМ ВРЕМЕНИ ---
+        function createSingleStoreOrder() {
+            let activeListings = marketplaceListings.filter(x => x.isListingActive !== false);
+            if (activeListings.length === 0) return false;
+
+            let buyer = buyerNamesPool[Math.floor(Math.random() * buyerNamesPool.length)];
+            let destObj = onlineDeliveryDestinations[Math.floor(Math.random() * onlineDeliveryDestinations.length)];
+            
+            let itemsInCartCount = Math.min(Math.floor(Math.random() * 3) + 1, activeListings.length);
+            let shuffled = [...activeListings].sort(() => 0.5 - Math.random()).slice(0, itemsInCartCount);
+
+            let orderItems = [];
+            let totalCost = 0;
+            let totalKg = 0;
+            let totalPcs = 0;
+
+            shuffled.forEach(listing => {
+                let cropObj = crops.find(c => c.name === listing.sourceName);
+                let prodObj = products.find(p => p.name === listing.sourceName);
+                let unitWeight = cropObj ? (cropObj.weightPerPcs || 0.5) : (prodObj ? (prodObj.weightPerPcs || 1.0) : 0.5);
+
+                let minQty = parseFloat(listing.minOrder) || 1.0;
+                let kg = 0;
+                let pcs = 0;
+                let cost = 0;
+
+                if (listing.unitType === 'pcs') {
+                    let addPcs = Math.floor(Math.random() * 5);
+                    pcs = Math.max(1, Math.round(minQty) + addPcs);
+                    kg = Math.round((pcs * unitWeight) * 100) / 100;
+                    cost = pcs * listing.price;
+                } else {
+                    let multiplier = Math.floor(Math.random() * 4) + 1;
+                    kg = Math.round((minQty * multiplier) * 100) / 100;
+                    pcs = Math.max(1, Math.round(kg / unitWeight));
+                    cost = Math.round(kg * listing.price);
+                }
+
+                totalCost += cost;
+                totalKg += kg;
+                totalPcs += pcs;
+                orderItems.push({ name: listing.sourceName, kg: kg, pcs: pcs });
+            });
+
+            let isCod = Math.random() < 0.65;
+            let now = new Date();
+
+            onlineStoreOrders.unshift({
+                uniqueCode: "ONL-" + Math.floor(1000 + Math.random() * 9000),
+                buyerName: buyer,
+                destCity: destObj.city,
+                deliveryDays: destObj.days,
+                items: orderItems,
+                totalKg: Math.round(totalKg * 100) / 100,
+                totalPcs: totalPcs,
+                totalPrice: totalCost,
+                paymentType: isCod ? 'cod' : 'full',
+                isPaid: false,
+                isPrepaid: false,
+                dateStr: formatDate(day),
+                timeCreated: now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+                timestampCreated: now.getTime()
+            });
+
+            if (onlineStoreOrders.length > 25) onlineStoreOrders.pop(); // держим пул актуальным
+            saveData();
+            document.getElementById('storeOrdersCounterBadge').innerText = onlineStoreOrders.length;
+            renderStoreOrders();
+            return true;
+        }
+
+        function triggerManualStoreOrder() {
+            if (createSingleStoreOrder()) {
+                alert("📣 Рекламная кампания привлекла нового онлайн-покупателя!");
+            } else {
+                alert("❌ На маркетплейсе нет активных товаров! Включите товары кнопкой «В продаже».");
+            }
+        }
+
+        function createSingleMarketOrder() {
+            let availableCrops = crops.filter(c => c.active !== false);
+            if (availableCrops.length === 0 || cities.length === 0) return false;
+
+            let roll = Math.random();
+            let type, minKg, maxKg, tagClass, cropCount;
+
+            if (roll < 0.50) {
+                type = "Маленький"; minKg = 5; maxKg = 15; cropCount = Math.floor(Math.random() * 2) + 1; tagClass = "tag-small";
+            } else if (roll < 0.80) {
+                type = "Средний"; minKg = 15; maxKg = 35; cropCount = Math.floor(Math.random() * 2) + 2; tagClass = "tag-medium";
+            } else if (roll < 0.93) {
+                type = "Большой"; minKg = 35; maxKg = 70; cropCount = Math.floor(Math.random() * 3) + 3; tagClass = "tag-large";
+            } else {
+                type = "МЕГА"; minKg = 70; maxKg = 150; cropCount = Math.floor(Math.random() * 3) + 5; tagClass = "tag-mega";
+            }
+
+            let selectedCropsCount = Math.min(cropCount, availableCrops.length);
+            let shuffledCrops = [...availableCrops].sort(() => 0.5 - Math.random()).slice(0, selectedCropsCount);
+
+            let itemsList = [];
+            let totalKg = 0;
+            let totalPcs = 0;
+            let totalPrice = 0;
+
+            shuffledCrops.forEach(c => {
+                let kg = Math.floor(Math.random() * (maxKg - minKg + 1)) + minKg;
+                let weightPerUnit = c.weightPerPcs || 0.5;
+                let pcs = Math.round(kg / weightPerUnit);
+                totalKg += kg;
+                totalPcs += pcs;
+                let activePrice = c.currentPriceKg || c.priceKg;
+                if (c.highDemand) activePrice = Math.round(activePrice * 1.15);
+                totalPrice += kg * activePrice;
+                itemsList.push({ name: c.name, kg: kg, pcs: pcs });
+            });
+
+            let bonus = type === "МЕГА" ? 1.2 : (type === "Большой" ? 1.1 : 1.05);
+            totalPrice = Math.round(totalPrice * bonus);
+            let destCity = cities[Math.floor(Math.random() * cities.length)];
+            let now = new Date();
+
+            marketOrders.unshift({
+                id: orderCounter++,
+                uniqueCode: "ORD-" + Math.floor(1000 + Math.random() * 9000),
+                type: type,
+                tagClass: tagClass,
+                dest: destCity,
+                items: itemsList,
+                totalKg: totalKg,
+                totalPcs: totalPcs,
+                price: totalPrice,
+                isDeducted: false,
+                assignedVehicleId: null,
+                assignedVehicleTitle: "",
+                timeCreated: now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+                timestampCreated: now.getTime()
+            });
+
+            if (marketOrders.length > 20) marketOrders.pop();
+            saveData();
+            renderMarket();
+            updateUI();
+            return true;
+        }
+
+        function triggerManualMarketOrder() {
+            if (createSingleMarketOrder()) {
+                alert("📬 Поступила новая оптовая заявка от торговой гильдии!");
+            }
+        }
+
+        // Автономный фоновый генератор заказов (эмуляция реального времени)
+        setInterval(() => {
+            // Раз в ~30-45 секунд с шансом 70% спавнится заказ на биржу или в магазин
+            if (Math.random() < 0.65) {
+                createSingleStoreOrder();
+            }
+            if (Math.random() < 0.55) {
+                createSingleMarketOrder();
+            }
+        }, 35000);
+
+        function verifyFopFullPayment(code) {
+            let o = onlineStoreOrders.find(x => x.uniqueCode === code);
+            if (!o) return;
+
+            o.isPaid = true;
+            totalBalance += o.totalPrice;
+            dayRevenue += o.totalPrice;
+
+            fopIncomingPayments.unshift({
+                id: Date.now(),
+                dateStr: formatDate(day),
+                timeStr: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+                payer: o.buyerName,
+                orderCode: o.uniqueCode,
+                type: "100% Онлайн-оплата заказа",
+                amount: o.totalPrice
+            });
+
+            saveData();
+            updateUI();
+            renderStoreOrders();
+            alert(`✅ Средства 100% зачислены на счёт ФОП!\nПлательщик: ${o.buyerName}\nСумма: +${o.totalPrice.toLocaleString()} 🪙\nЗапись занесена в Выписку ФОП!`);
+        }
+
+        function verifyFopCodPrepay(code) {
+            let o = onlineStoreOrders.find(x => x.uniqueCode === code);
+            if (!o) return;
+
+            o.isPrepaid = true;
+            totalBalance += 100;
+            dayRevenue += 100;
+
+            fopIncomingPayments.unshift({
+                id: Date.now(),
+                dateStr: formatDate(day),
+                timeStr: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+                payer: o.buyerName,
+                orderCode: o.uniqueCode,
+                type: "Предоплата за доставку (Наложка)",
+                amount: 100
+            });
+
+            saveData();
+            updateUI();
+            renderStoreOrders();
+            alert(`✅ Предоплата 100 🪙 за доставку зачислена на счёт ФОП!\nПлательщик: ${o.buyerName}\nОстаток к оплате при получении: ${(o.totalPrice - 100).toLocaleString()} 🪙\nЗапись добавлена в Выписку ФОП!`);
+        }
+
+        function sendOnlineOrderToLogistics(code) {
+            let idx = onlineStoreOrders.findIndex(x => x.uniqueCode === code);
+            if (idx === -1) return;
+            let o = onlineStoreOrders.splice(idx, 1)[0];
+
+            let newProgressOrder = {
+                id: orderCounter++,
+                uniqueCode: o.uniqueCode,
+                dest: o.destCity + " (Клиент: " + o.buyerName + ")",
+                buyerName: o.buyerName,
+                items: o.items,
+                totalKg: o.totalKg,
+                totalPcs: o.totalPcs,
+                price: o.totalPrice,
+                statusStage: "taken",
+                isDeducted: false,
+                isOnlineStore: true,
+                paymentType: o.paymentType,
+                deliveryDaysRemaining: o.deliveryDays || 2,
+                totalDeliveryDays: o.deliveryDays || 2,
+                timeTaken: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+                timestampTaken: Date.now()
+            };
+
+            inProgressOrders.unshift(newProgressOrder);
+            saveData();
+            document.getElementById('storeOrdersCounterBadge').innerText = onlineStoreOrders.length;
+            renderStoreOrders();
+            renderProgress();
+            alert(`🚀 Интернет-заказ #${o.uniqueCode} направлен в отдел логистики на комплектацию со склада!`);
+        }
+
+        function shipOnlineDirectly(id) {
+            let o = inProgressOrders.find(x => x.id === id);
+            if (!o) return;
+
+            o.statusStage = 'shipped';
+            o.timeShipped = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+            saveData();
+            renderProgress();
+            alert(`📮 Посылка #${o.uniqueCode} передана курьерской почтовой службе в ${o.dest}! (Срок: ${o.deliveryDaysRemaining} дн.)`);
+        }
+
+        function claimCodMoney(id) {
+            let idx = inProgressOrders.findIndex(o => o.id === id);
+            if (idx === -1) return;
+            let o = inProgressOrders.splice(idx, 1)[0];
+
+            let remainingSum = Math.max(0, o.price - 100);
+            totalBalance += remainingSum;
+            dayRevenue += remainingSum;
+            dayOrders++;
+            workMinutesToday += 15;
+
+            fopIncomingPayments.unshift({
+                id: Date.now(),
+                dateStr: formatDate(day),
+                timeStr: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+                payer: o.buyerName || "Клиент почты",
+                orderCode: o.uniqueCode,
+                type: "Оплата наложенного платежа при вручении",
+                amount: remainingSum
+            });
+
+            archive.unshift({ 
+                id: o.id, 
+                uniqueCode: o.uniqueCode, 
+                dest: o.dest, 
+                items: o.items, 
+                totalKg: o.totalKg, 
+                totalPcs: o.totalPcs, 
+                price: o.price, 
+                day: day, 
+                dateStr: formatDate(day), 
+                vehicleTitle: "Курьерская Почтовая Служба"
+            });
+
+            saveData();
+            updateUI();
+            renderProgress();
+            renderArchive();
+            renderBookkeeping();
+            alert(`💰 Деньги за наложенный платёж #${o.uniqueCode} получены!\nЗачислено на ФОП и в кассу: +${remainingSum.toLocaleString()} 🪙\nЗапись занесена в Выписку ФОП, заказ закрыт!`);
+        }
+
+        // --- 🏬 РЫНОК И ЖИВОЙ ЧАТ С ПРОДАВЦАМИ ---
+        function switchBazaarCategory(catKey, btnEl) {
+            currentBazaarCategory = catKey;
+            document.querySelectorAll('#shopping_bazaar .filter-btn').forEach(el => el.classList.remove('active'));
+            btnEl.classList.add('active');
+            renderBazaar();
+        }
+
+        function renderBazaar() {
+            const container = document.getElementById('bazaarContentList');
+            if (!container) return;
+            container.innerHTML = "";
+
+            if (currentBazaarCategory === 'chat') {
+                let messagesHtml = `<div class="card"><div id="bazaarChatBox" style="max-height:240px; overflow-y:auto; margin-bottom:10px;">`;
+                bazaarChatMessages.forEach(m => {
+                    let isMe = m.sender === "Вы (Холдинг)";
+                    messagesHtml += `
+                        <div class="chat-bubble ${isMe ? 'chat-bubble-me' : ''}">
+                            <div style="display:flex; justify-content:space-between; margin-bottom:2px;">
+                                <b>${m.sender}</b>
+                                <span style="font-size:9px; color:var(--text-muted);">${m.time}</span>
+                            </div>
+                            <div>${m.text}</div>
+                        </div>`;
+                });
+                messagesHtml += `</div>
+                    <input type="text" id="bazaarUserMsgInput" placeholder="Напишите торговцам (например: нужны семена тыквы)...">
+                    <button class="btn btn-blue" onclick="sendBazaarMessage()">Отправить сообщение продавцам ✉️</button>
+                </div>`;
+                container.innerHTML = messagesHtml;
+                let chatBox = document.getElementById('bazaarChatBox');
+                if (chatBox) chatBox.scrollTop = chatBox.scrollHeight;
+                return;
+            }
+
+            let offers = bazaarOffers[currentBazaarCategory] || [];
+            if (offers.length === 0) {
+                container.innerHTML = "<p style='font-size:12px; color:var(--text-muted);'>В этом отделе сейчас нет предложений.</p>";
+                return;
+            }
+
+            offers.forEach(item => {
+                container.innerHTML += `
+                    <div class="card" style="margin-bottom:10px;">
+                        <div style="display:flex; justify-content:space-between; align-items:center;">
+                            <b>${item.name}</b>
+                            <b style="color:var(--accent-gold); font-size:14px;">${item.price.toLocaleString()} 🪙</b>
+                        </div>
+                        <div style="font-size:10px; color:var(--accent-blue); margin-top:2px;">Продавец: ${item.seller}</div>
+                        <p style="font-size:11px; color:var(--text-muted); margin:6px 0 10px;">${item.desc}</p>
+                        <button class="btn btn-purple" onclick="buyBazaarItem('${item.name}', ${item.price}, '${currentBazaarCategory}')">Купить предложение 🛒</button>
+                    </div>`;
+            });
+        }
+
+        function sendBazaarMessage() {
+            let input = document.getElementById('bazaarUserMsgInput');
+            let query = input.value.trim();
+            if (!query) return;
+
+            let nowTime = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            bazaarChatMessages.push({ sender: "Вы (Холдинг)", text: query, time: nowTime });
+            input.value = "";
+            renderBazaar();
+            saveData();
+
+            setTimeout(() => {
+                let qLower = query.toLowerCase();
+                let replySender = "Торговый ряд";
+                let replyText = "Принято в обработку! Осматривайтесь на прилавках.";
+
+                if (qLower.includes("семен") || qLower.includes("рассад") || qLower.includes("тыкв") || qLower.includes("томат") || qLower.includes("кукуруз") || qLower.includes("рис") || qLower.includes("капуст")) {
+                    replySender = "🌾 Агроном Рынка";
+                    replyText = `По вашей просьбе выставил партию по запросу "${query}" со скидкой! Проверяйте отдел «Ферма».`;
+                    
+                    bazaarOffers.farm.unshift({
+                        id: "req_" + Date.now(),
+                        name: "Заказная партия: " + query,
+                        price: 95,
+                        seller: "Агроном по спец-заказу",
+                        desc: "Специально выставленный лот по вашему запросу из торгового чата."
+                    });
+                } else if (qLower.includes("коров") || qLower.includes("свин") || qLower.includes("куриц") || qLower.includes("овц") || qLower.includes("скот") || qLower.includes("животн")) {
+                    replySender = "🐮 Заводчик Скота";
+                    replyText = `Услышал вас! Подогнал племенных особей по запросу "${query}". Заходите в отдел «Скотарство».`;
+                    
+                    bazaarOffers.livestock.unshift({
+                        id: "req_" + Date.now(),
+                        name: "Поголовье: " + query,
+                        price: 750,
+                        seller: "Племенной питомник",
+                        desc: "Спец-поставка животных под ваш запрос."
+                    });
+                } else if (qLower.includes("нож") || qLower.includes("серп") || qLower.includes("инструмент") || qLower.includes("аппарат")) {
+                    replySender = "🛠️ Старший Кузнец";
+                    replyText = `Отковал инструмент по вашему запросу "${query}". Проверяйте вкладку «Инструменты».`;
+                    
+                    bazaarOffers.tools.unshift({
+                        id: "req_" + Date.now(),
+                        name: "Кованый инвентарь: " + query,
+                        price: 450,
+                        seller: "Кузнечный мастер",
+                        desc: "Специнструмент повышенной прочности."
+                    });
+                } else {
+                    replySender = "Базарный маклер";
+                    replyText = "Договорились, вывесил объявление на площади! Торговцы подготовят позиции.";
+                }
+
+                let replyTime = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                bazaarChatMessages.push({ sender: replySender, text: replyText, time: replyTime });
+                saveData();
+                renderBazaar();
+            }, 1000);
+        }
+
+        function buyBazaarItem(title, price, category) {
+            if (totalBalance < price) {
+                alert(`❌ Недостаточно средств в кассе холдинга! Требуется: ${price.toLocaleString()} 🪙`);
+                return;
+            }
+
+            totalBalance -= price;
+
+            purchaseReceipts.unshift({
+                id: Date.now(),
+                title: title,
+                category: category === 'farm' ? 'Семена' : (category === 'livestock' ? 'Скот' : 'Инструменты'),
+                price: price,
+                dateStr: formatDate(day),
+                code: "MKT-" + Math.floor(10000 + Math.random() * 90000)
+            });
+
+            saveData();
+            updateUI();
+            alert(`🎉 Покупка оформлена: "${title}" за ${price.toLocaleString()} 🪙! Чек занесён в реестр расходов.`);
+        }
+
+        // --- 🌱 УПРАВЛЕНИЕ КУЛЬТУРАМИ ---
+        function renderCrops() {
+            const list = document.getElementById('cropsList');
+            if (!list) return;
+            list.innerHTML = "";
+            crops.forEach((c, index) => {
+                let isCurrentActive = c.active !== false;
+                let toggleLabel = isCurrentActive ? "🟢 В наличии" : "🔴 Выключено";
+                let toggleClass = isCurrentActive ? "toggle-active" : "toggle-disabled";
+
+                list.innerHTML += `
+                    <div class="item-row">
+                        <div>
+                            <b>${c.name}</b> 
+                            <small style="color:var(--text-muted); display:block; font-size:11px;">~${c.weightPerPcs} кг/шт</small>
+                        </div>
+                        <div style="display:flex; align-items:center; gap:6px;">
+                            <b style="color:var(--accent-gold); font-size:12px;">${c.priceKg} 🪙/кг</b>
+                            <button class="toggle-btn ${toggleClass}" onclick="toggleCropActive(${index})">${toggleLabel}</button>
+                            <button class="btn btn-blue btn-sm" onclick="editCrop(${index})">✏️</button>
+                            <button class="btn btn-danger btn-sm" onclick="deleteCrop(${index})">🗑️</button>
+                        </div>
+                    </div>`;
+            });
+        }
+
+        function toggleCropActive(index) {
+            crops[index].active = crops[index].active === false ? true : false;
+            saveData();
+            renderCrops();
+        }
+
+        function editCrop(index) {
+            let c = crops[index];
+            let newPrice = prompt(`Изменить базовую цену за 1 кг для культуры "${c.name}":`, c.priceKg);
+            if (newPrice !== null && !isNaN(newPrice) && newPrice > 0) {
+                let newWeight = prompt(`Изменить вес 1 штуки в кг для культуры "${c.name}":`, c.weightPerPcs || 0.5);
+                
+                crops[index].priceKg = parseInt(newPrice);
+                crops[index].currentPriceKg = parseInt(newPrice);
+                
+                if (newWeight !== null && !isNaN(newWeight) && parseFloat(newWeight) > 0) {
+                    let parsedWeight = parseFloat(newWeight);
+                    crops[index].weightPerPcs = parsedWeight;
+
+                    let currentPcs = parseInt(c.stockPcs) || 0;
+                    if (currentPcs > 0) {
+                        c.stockKg = Math.round((currentPcs * parsedWeight) * 10) / 10;
+                    }
+                }
+
+                saveData();
+                renderCrops();
+                renderHarvestTab();
+                alert(`✅ Культура "${c.name}" успешно обновлена! Новый вес: ${crops[index].weightPerPcs} кг.`);
+            }
+        }
+
+        function deleteCrop(index) {
+            if (confirm(`Удалить культуру "${crops[index].name}" из каталога?`)) {
+                crops.splice(index, 1);
+                saveData();
+                renderCrops();
+            }
+        }
+
+        function addCrop() {
+            const name = document.getElementById('cropName').value.trim();
+            const priceKg = parseInt(document.getElementById('cropPriceKg').value);
+            const weightPerPcs = parseFloat(document.getElementById('cropWeightPerPcs').value) || 0.5;
+
+            if (name && priceKg) {
+                crops.push({ id: Date.now(), name, priceKg, currentPriceKg: priceKg, weightPerPcs, active: true, stockKg: 0, stockPcs: 0, totalHarvestedKg: 0 });
+                document.getElementById('cropName').value = "";
+                document.getElementById('cropPriceKg').value = "";
+                document.getElementById('cropWeightPerPcs').value = "";
+                saveData();
+                renderCrops();
+                alert(`Культура "${name}" успешно добавлена!`);
+            }
+        }
+
+        // --- 🏦 БАНК, КРЕДИТЫ, ДЕПОЗИТЫ & ОФИЦИАЛЬНАЯ ВЫПИСКА ФОП ---
+        function renderBank() {
+            document.getElementById('bankBalanceDisplay').innerText = totalBalance.toLocaleString() + " 🪙";
+            
+            const fopDiv = document.getElementById('fopStatusContent');
+            if (fopData.isRegistered) {
+                fopDiv.innerHTML = `
+                    <div style="font-size:12px;">
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+                            <b style="color:var(--accent-green);">${fopData.title}</b>
+                            <span class="status-badge-ok">🟢 Действует</span>
+                        </div>
+                        <div style="color:var(--text-muted); line-height:1.6;">
+                            Код ЄДРПОУ/ІПН: <b>${fopData.edrpou}</b><br>
+                            IBAN: <b>${fopData.iban}</b><br>
+                            Налоговая группа: <b>${fopData.group}</b><br>
+                            Зарегистрирован: <b>${fopData.regDate}</b>
+                        </div>
+                    </div>`;
+            } else {
+                fopDiv.innerHTML = `
+                    <p style="font-size:12px; color:var(--text-muted);">Статус ФОП не зарегистрирован.</p>
+                    <button class="btn btn-purple" onclick="registerFOP()">🏛️ Зарегистрировать ФОП (1 000 🪙)</button>`;
+            }
+
+            renderFopIncomingLedger();
+            renderBankTransfers();
+
+            if (activeLoanObj) {
+                let dailyInt = Math.round(activeLoanObj.amount * (activeLoanObj.ratePerDay / 100));
+                document.getElementById('activeLoanStatus').innerHTML = `
+                    <div style="color:var(--accent-red); margin-bottom:4px;">
+                        🔴 <b>Активный кредит:</b> ${activeLoanObj.amount.toLocaleString()} 🪙<br>
+                        Срок: <b>${activeLoanObj.termDays} дн.</b> | Ежедневный процент: <b>${dailyInt.toLocaleString()} 🪙 (${activeLoanObj.ratePerDay}%)</b>
+                    </div>
+                    <button class="btn btn-danger btn-sm" onclick="repayLoan()">Погасить тело кредита (${activeLoanObj.amount.toLocaleString()} 🪙)</button>`;
+            } else {
+                document.getElementById('activeLoanStatus').innerHTML = `<span style="color:var(--accent-green);">🟢 Задолженностей по кредитам нет</span>`;
+            }
+
+            if (activeDeposit > 0) {
+                let dailyDepIncome = Math.round(activeDeposit * 0.03);
+                document.getElementById('activeDepositStatus').innerHTML = `
+                    <span style="color:var(--accent-green);">🟢 <b>На депозите:</b> ${activeDeposit.toLocaleString()} 🪙 (Доход: +${dailyDepIncome.toLocaleString()} 🪙/день)</span>`;
+            } else {
+                document.getElementById('activeDepositStatus').innerHTML = `<span style="color:var(--text-muted);">Депозитный счёт пуст</span>`;
+            }
+
+            const stocksDiv = document.getElementById('stocksList');
+            stocksDiv.innerHTML = "";
+            stocksCatalog.forEach(s => {
+                let count = myStocks[s.id] || 0;
+                stocksDiv.innerHTML += `
+                    <div class="item-row">
+                        <div>
+                            <b>${s.name}</b>
+                            <small style="display:block; color:var(--text-muted);">Цена: ${s.price} 🪙 | Дивиденд: ${s.dividend * 100}%/день</small>
+                        </div>
+                        <div>
+                            <span style="font-size:12px; margin-right:6px;">Куплено: <b>${count}</b></span>
+                            <button class="btn btn-blue btn-sm" onclick="buyStock('${s.id}')">Купить</button>
+                        </div>
+                    </div>`;
+            });
+        }
+
+        function renderFopIncomingLedger() {
+            const list = document.getElementById('fopIncomingPaymentsList');
+            const badge = document.getElementById('fopTotalEarnedBadge');
+            if (!list) return;
+
+            let totalEarned = fopIncomingPayments.reduce((acc, curr) => acc + (curr.amount || 0), 0);
+            if (badge) badge.innerText = `Всего зачислено: +${totalEarned.toLocaleString()} 🪙`;
+
+            list.innerHTML = "";
+            if (fopIncomingPayments.length === 0) {
+                list.innerHTML = "<p style='font-size:12px; color:var(--text-muted); padding:6px 0;'>Поступлений по счёту ФОП пока не зафиксировано.</p>";
+                return;
+            }
+
+            fopIncomingPayments.forEach(pay => {
+                list.innerHTML += `
+                    <div class="item-row" style="font-size:11px; padding:6px 0;">
+                        <div>
+                            <b>${pay.payer}</b> <small style="color:var(--text-muted);">(${pay.orderCode})</small>
+                            <div style="color:var(--accent-blue); font-size:10px;">${pay.type}</div>
+                            <small style="color:var(--text-muted);">📅 ${pay.dateStr} в ${pay.timeStr || ''}</small>
+                        </div>
+                        <div style="text-align:right;">
+                            <b style="color:var(--accent-green); font-size:13px;">+${pay.amount.toLocaleString()} 🪙</b>
+                            <div style="font-size:9px; color:var(--accent-gold);">IBAN: ${fopData.iban.slice(0, 10)}...</div>
+                        </div>
+                    </div>`;
+            });
+        }
+
+        function takeRealisticLoan() {
+            let amount = parseInt(document.getElementById('loanAmountInput').value);
+            let termDays = parseInt(document.getElementById('loanTermSelect').value);
+            if (isNaN(amount) || amount <= 0) return alert("Введите корректную сумму кредита!");
+            if (activeLoanObj) return alert("Сначала закройте текущий кредит холдинга!");
+
+            let rate = termDays === 3 ? 4 : (termDays === 7 ? 3 : 2);
+            activeLoanObj = { amount: amount, termDays: termDays, ratePerDay: rate };
+            totalBalance += amount;
+
+            document.getElementById('loanAmountInput').value = "";
+            saveData();
+            updateUI();
+            renderBank();
+            alert(`🏦 Кредит на сумму ${amount.toLocaleString()} 🪙 выдан на срок ${termDays} дней!`);
+        }
+
+        function repayLoan() {
+            if (!activeLoanObj) return;
+            if (totalBalance < activeLoanObj.amount) {
+                return alert(`❌ Недостаточно средств в кассе! Требуется: ${activeLoanObj.amount.toLocaleString()} 🪙`);
+            }
+
+            totalBalance -= activeLoanObj.amount;
+            alert(`✅ Кредит в размере ${activeLoanObj.amount.toLocaleString()} 🪙 полностью закрыт!`);
+            activeLoanObj = null;
+            saveData();
+            updateUI();
+            renderBank();
+        }
+
+        function makeDeposit() {
+            let val = parseInt(document.getElementById('depositAmountInput').value);
+            if (isNaN(val) || val <= 0) return alert("Укажите сумму для внесения!");
+            if (totalBalance < val) return alert("Недостаточно средств в кассе!");
+
+            totalBalance -= val;
+            activeDeposit += val;
+            document.getElementById('depositAmountInput').value = "";
+            saveData();
+            updateUI();
+            renderBank();
+            alert(`Внесено на депозит: ${val.toLocaleString()} 🪙`);
+        }
+
+        function withdrawPartialDeposit() {
+            let val = parseInt(document.getElementById('depositAmountInput').value);
+            if (isNaN(val) || val <= 0) return alert("Укажите сумму для снятия с депозита!");
+            if (activeDeposit < val) return alert(`На депозите всего ${activeDeposit.toLocaleString()} 🪙!`);
+
+            activeDeposit -= val;
+            totalBalance += val;
+            document.getElementById('depositAmountInput').value = "";
+            saveData();
+            updateUI();
+            renderBank();
+            alert(`Успешно выведено с депозита в кассу: +${val.toLocaleString()} 🪙`);
+        }
+
+        function executeBankTransfer() {
+            let target = document.getElementById('transferTargetInput').value.trim();
+            let amount = parseInt(document.getElementById('transferAmountInput').value);
+            let note = document.getElementById('transferNoteInput').value.trim() || "Частный перевод";
+
+            if (!target || isNaN(amount) || amount <= 0) return alert("Заполните корректно реквизиты и сумму перевода!");
+
+            let fee = Math.round(amount * 0.02);
+            let totalDeduction = amount + fee;
+
+            if (totalBalance < totalDeduction) return alert(`Недостаточно средств в кассе! Перевод: ${amount} 🪙 + Комиссия 2%: ${fee} 🪙 (Всего: ${totalDeduction} 🪙)`);
+
+            totalBalance -= totalDeduction;
+
+            bankTransfers.unshift({
+                id: Date.now(),
+                target: target,
+                amount: amount,
+                fee: fee,
+                note: note,
+                dateStr: formatDate(day),
+                code: "TRF-" + Math.floor(100000 + Math.random() * 900000)
+            });
+
+            document.getElementById('transferTargetInput').value = "";
+            document.getElementById('transferAmountInput').value = "";
+            document.getElementById('transferNoteInput').value = "";
+
+            saveData();
+            updateUI();
+            renderBank();
+            alert(`💸 Перевод на сумму ${amount} 🪙 отправлен получателю "${target}"!`);
+        }
+
+        function renderBankTransfers() {
+            const list = document.getElementById('transferHistoryList');
+            if (!list) return;
+            list.innerHTML = "";
+            if (bankTransfers.length === 0) {
+                list.innerHTML = "<p style='font-size:12px; color:var(--text-muted);'>Нет исходящих переводов</p>";
+                return;
+            }
+
+            bankTransfers.forEach(t => {
+                list.innerHTML += `
+                    <div class="item-row" style="font-size:11px; padding:6px 0;">
+                        <div>
+                            <b>${t.target}</b> <small style="color:var(--text-muted);">(${t.note})</small>
+                            <small style="display:block; color:var(--text-muted);">Код: ${t.code} | Дата: ${t.dateStr}</small>
+                        </div>
+                        <div style="text-align:right;">
+                            <b style="color:var(--accent-red);">-${t.amount.toLocaleString()} 🪙</b>
+                            <small style="display:block; color:var(--text-muted);">Комиссия: ${t.fee} 🪙</small>
+                        </div>
+                    </div>`;
+            });
+        }
+
+        function registerFOP() {
+            if (totalBalance < 1000) return alert("Недостаточно средств для регистрации ФОП (требуется 1 000 🪙)!");
+            totalBalance -= 1000;
+            fopData = {
+                isRegistered: true,
+                title: "ФОП Агро-Холдинг «Зелёный Дол»",
+                edrpou: Math.floor(10000000 + Math.random() * 90000000).toString(),
+                iban: "UA" + Math.floor(10 + Math.random() * 89) + "300001000002600" + Math.floor(1000000 + Math.random() * 9000000),
+                group: "3-я группа (5% налог)",
+                regDate: formatDate(day)
+            };
+            saveData();
+            updateUI();
+            renderBank();
+            alert("🏛️ ФОП предприятия успешно оформлен!");
+        }
+
+        function buyStock(stockId) {
+            let stock = stocksCatalog.find(s => s.id === stockId);
+            if (totalBalance < stock.price) return alert("Недостаточно средств для покупки акции!");
+            totalBalance -= stock.price;
+            myStocks[stockId] = (myStocks[stockId] || 0) + 1;
+            saveData();
+            updateUI();
+            renderBank();
+            alert(`Приобретена акция "${stock.name}"!`);
+        }
+
+        // --- 🚚 АВТОПАРК И МОНИТОРИНГ ТРАНСПОРТА ---
+        function renderFleetStatus() {
+            const container = document.getElementById('fleetStatusList');
+            if (!container) return;
+            container.innerHTML = "";
+
+            let vehicles = myProperties.filter(p => p.mainType === 'transport');
+            if (vehicles.length === 0) {
+                container.innerHTML = "<p style='font-size:13px; color:var(--text-muted); text-align:center;'>Транспорт не найден в реестре холдинга.</p>";
+                return;
+            }
+
+            vehicles.forEach(v => {
+                let maxCap = parseInt(v.transMaxOrders) || 3;
+                let loadedOrders = inProgressOrders.filter(o => o.assignedVehicleId === v.id && o.statusStage !== 'completed');
+                let isEnRoute = v.isEnRoute || loadedOrders.some(o => o.statusStage === 'shipped');
+
+                let statusText = "🅿️ В паркинге (Свободен)";
+                let statusColor = "var(--accent-green)";
+
+                if (isEnRoute) {
+                    statusText = "🌊 В пути к точке назначения";
+                    statusColor = "var(--accent-gold)";
+                } else if (loadedOrders.length > 0) {
+                    statusText = `🚚 На погрузке (${loadedOrders.length}/${maxCap})`;
+                    statusColor = "var(--accent-blue)";
+                }
+
+                let percent = Math.min(100, Math.round((loadedOrders.length / maxCap) * 100));
+
+                let ordersListHtml = "";
+                if (loadedOrders.length > 0) {
+                    loadedOrders.forEach(o => {
+                        let stageLbl = o.statusStage === 'shipped' ? '🌊 В пути' : '📦 В кузове';
+                        ordersListHtml += `
+                            <div class="item-row" style="font-size:11px; padding:4px 0;">
+                                <span><b>#${o.uniqueCode}</b> (${o.dest}) — ${formatItemsText(o.items)}</span>
+                                <span class="stage-badge" style="font-size:10px;">${stageLbl}</span>
+                            </div>`;
+                    });
+                } else {
+                    ordersListHtml = `<div style="font-size:11px; color:var(--text-muted); padding:4px 0;">Кузов пуст</div>`;
+                }
+
+                let actionBtnHtml = "";
+                if (isEnRoute && loadedOrders.length === 0) {
+                    actionBtnHtml = `<button class="btn btn-gold btn-sm" onclick="returnVehicleToParking(${v.id})">🅿️ Вернуть в паркинг</button>`;
+                } else if (!isEnRoute && loadedOrders.filter(o => o.statusStage === 'loaded').length > 0) {
+                    actionBtnHtml = `<button class="btn btn-purple btn-sm" onclick="shipVehicle(${v.id})">🌊 Отправить в рейс</button>`;
+                }
+
+                container.innerHTML += `
+                    <div class="card" style="border-left:4px solid ${statusColor};">
+                        <div style="display:flex; justify-content:space-between; align-items:center;">
+                            <b>🚚 ${v.title} (${v.transClass})</b>
+                            <span style="font-size:11px; font-weight:bold; color:${statusColor};">${statusText}</span>
+                        </div>
+                        
+                        <div style="font-size:11px; color:var(--text-muted); margin-top:4px;">
+                            Категория: <b>${v.transCategory}</b> | Номер: <b>${v.transPlate}</b> | Выгружено: <b>${v.totalDeliveredCount || 0} зак.</b>
+                        </div>
+
+                        <div style="margin-top:8px;">
+                            <div style="display:flex; justify-content:space-between; font-size:11px;">
+                                <span>Вместимость кузова:</span>
+                                <b>${loadedOrders.length} из ${maxCap} заказов (${percent}%)</b>
+                            </div>
+                            <div class="progress-bar-bg">
+                                <div class="progress-bar-fill" style="width: ${percent}%;"></div>
+                            </div>
+                        </div>
+
+                        <div style="margin-top:10px; background:rgba(0,0,0,0.15); padding:8px; border-radius:6px;">
+                            <div style="font-size:11px; color:var(--text-muted); margin-bottom:4px;">Содержимое кузова:</div>
+                            ${ordersListHtml}
+                        </div>
+
+                        <div style="margin-top:8px; text-align:right;">
+                            ${actionBtnHtml}
+                        </div>
+                    </div>`;
+            });
+        }
+
+        function returnVehicleToParking(vehicleId) {
+            let v = myProperties.find(p => p.id === vehicleId);
+            if (v) {
+                v.isEnRoute = false;
+                saveData();
+                renderFleetStatus();
+                renderProgress();
+                alert(`🅿️ Транспорт "${v.title}" вернулся в паркинг и готов к новым загрузкам!`);
+            }
+        }
+
+        // --- 🧺 ЕДИНЫЙ СКЛАД С ПОИСКОМ ---
+        function toggleWarehouseInputType() {
+            document.getElementById('warehouseSearchInput').value = "";
+            renderHarvestSelect();
+        }
+
+        function renderHarvestSelect() {
+            const type = document.getElementById('warehouseItemTypeSelect').value;
+            const searchQuery = (document.getElementById('warehouseSearchInput').value || '').toLowerCase().trim();
+            const select = document.getElementById('warehouseItemSelect');
+            if (!select) return;
+            select.innerHTML = "";
+
+            if (type === 'crop') {
+                let filtered = crops.filter(c => c.active !== false && c.name.toLowerCase().includes(searchQuery));
+                filtered.forEach(c => {
+                    select.innerHTML += `<option value="${c.id}">${c.name} (~${c.weightPerPcs} кг/шт)</option>`;
+                });
+                if (filtered.length === 0) select.innerHTML = `<option value="">Ничего не найдено</option>`;
+            } else {
+                let filtered = products.filter(p => p.active !== false && p.name.toLowerCase().includes(searchQuery));
+                filtered.forEach(p => {
+                    select.innerHTML += `<option value="${p.id}">${p.name} (~${p.weightPerPcs} кг/ед.)</option>`;
+                });
+                if (filtered.length === 0) select.innerHTML = `<option value="">Ничего не найдено</option>`;
+            }
+        }
+
+        function recordWarehouseStock() {
+            const type = document.getElementById('warehouseItemTypeSelect').value;
+            const selectEl = document.getElementById('warehouseItemSelect');
+            const itemId = parseInt(selectEl.value);
+            const pcs = parseInt(document.getElementById('warehousePcsInput').value);
+
+            if (isNaN(itemId) || isNaN(pcs) || pcs <= 0) {
+                alert("Выберите позицию из списка и укажите положительное количество единиц!");
+                return;
+            }
+
+            if (type === 'crop') {
+                let c = crops.find(item => item.id === itemId);
+                if (!c) return alert("Выбранная культура не найдена!");
+                
+                let unitWeight = parseFloat(c.weightPerPcs);
+                if (isNaN(unitWeight) || unitWeight <= 0) unitWeight = 0.5;
+                
+                let addedKg = Math.round((pcs * unitWeight) * 10) / 10;
+                
+                c.stockPcs = (parseInt(c.stockPcs) || 0) + pcs;
+                c.stockKg = Math.round(((parseFloat(c.stockKg) || 0) + addedKg) * 10) / 10;
+                c.totalHarvestedKg = Math.round(((parseFloat(c.totalHarvestedKg) || 0) + addedKg) * 10) / 10;
+                
+                alert(`✅ Добавлено на склад: +${addedKg} кг (+${pcs} шт) культуры "${c.name}"!\nТекущий остаток: ${c.stockKg} кг (${c.stockPcs} шт)`);
+            } else {
+                let p = products.find(item => item.id === itemId);
+                if (!p) return alert("Выбранная продукция не найдена!");
+
+                let unitWeight = parseFloat(p.weightPerPcs);
+                if (isNaN(unitWeight) || unitWeight <= 0) unitWeight = 1.0;
+
+                let addedKg = Math.round((pcs * unitWeight) * 10) / 10;
+                
+                p.stockPcs = (parseInt(p.stockPcs) || 0) + pcs;
+                p.stockKg = Math.round(((parseFloat(p.stockKg) || 0) + addedKg) * 10) / 10;
+                
+                alert(`✅ Добавлено на склад: +${addedKg} кг (+${pcs} ед.) продукции "${p.name}"!\nТекущий остаток: ${p.stockKg} кг (${p.stockPcs} ед.)`);
+            }
+
+            document.getElementById('warehousePcsInput').value = "";
+            document.getElementById('warehouseSearchInput').value = "";
+            saveData();
+            renderHarvestTab();
+            renderMarketplaceShowcase();
+        }
+
+        function renderHarvestTab() {
+            renderHarvestSelect();
+
+            const cropsDiv = document.getElementById('stockCropsList');
+            if (cropsDiv) {
+                cropsDiv.innerHTML = "";
+                crops.forEach(c => {
+                    cropsDiv.innerHTML += `
+                        <div class="item-row">
+                            <span>${c.name}</span>
+                            <b>${c.stockKg || 0} кг (${c.stockPcs || 0} шт)</b>
+                        </div>`;
+                });
+            }
+
+            const productsDiv = document.getElementById('stockProductsList');
+            if (productsDiv) {
+                productsDiv.innerHTML = "";
+                products.forEach(p => {
+                    productsDiv.innerHTML += `
+                        <div class="item-row">
+                            <span>${p.name}</span>
+                            <b>${p.stockKg || 0} кг (${p.stockPcs || 0} ед.)</b>
+                        </div>`;
+                });
+            }
+        }
+
+        // --- ПРОДУКЦИЯ КОМПАНИИ ---
+        function renderProducts() {
+            const list = document.getElementById('productsList');
+            if (!list) return;
+            list.innerHTML = "";
+            products.forEach((p, index) => {
+                let isCurrentActive = p.active !== false;
+                let toggleLabel = isCurrentActive ? "🟢 В наличии" : "🔴 Выключено";
+                let toggleClass = isCurrentActive ? "toggle-active" : "toggle-disabled";
+
+                list.innerHTML += `
+                    <div class="item-row">
+                        <div>
+                            <b>${p.name}</b> 
+                            <small style="color:var(--text-muted); display:block; font-size:11px;">~${p.weightPerPcs || 1.0} кг/ед.</small>
+                        </div>
+                        <div style="display:flex; align-items:center; gap:6px;">
+                            <b style="color:var(--accent-gold); font-size:12px;">${p.price} 🪙</b>
+                            <button class="toggle-btn ${toggleClass}" onclick="toggleProductActive(${index})">${toggleLabel}</button>
+                            <button class="btn btn-blue btn-sm" onclick="editProduct(${index})">✏️</button>
+                            <button class="btn btn-danger btn-sm" onclick="deleteProduct(${index})">🗑️</button>
+                        </div>
+                    </div>`;
+            });
+        }
+
+        function addProduct() {
+            const name = document.getElementById('productName').value.trim();
+            const price = parseInt(document.getElementById('productPrice').value);
+            const weightPerPcs = parseFloat(document.getElementById('productWeight').value) || 1.0;
+
+            if (name && price) {
+                products.push({ id: Date.now(), name, price, weightPerPcs, active: true, inStore: true, stockKg: 0, stockPcs: 0 });
+                document.getElementById('productName').value = "";
+                document.getElementById('productPrice').value = "";
+                document.getElementById('productWeight').value = "";
+                saveData();
+                renderProducts();
+                alert(`Продукция "${name}" успешно добавлена!`);
+            } else {
+                alert("Укажите название и цену!");
+            }
+        }
+
+        function toggleProductActive(index) {
+            products[index].active = products[index].active === false ? true : false;
+            saveData();
+            renderProducts();
+        }
+
+        function editProduct(index) {
+            let p = products[index];
+            let newPrice = prompt(`Изменить цену за 1 ед. для "${p.name}":`, p.price);
+            if (newPrice !== null && !isNaN(newPrice) && newPrice > 0) {
+                let newWeight = prompt(`Изменить вес 1 единицы в кг для "${p.name}":`, p.weightPerPcs);
+                products[index].price = parseInt(newPrice);
+                if (newWeight !== null && !isNaN(newWeight) && newWeight > 0) {
+                    products[index].weightPerPcs = parseFloat(newWeight);
+                }
+                saveData();
+                renderProducts();
+            }
+        }
+
+        function deleteProduct(index) {
+            if (confirm(`Удалить позицию "${products[index].name}"?`)) {
+                products.splice(index, 1);
+                saveData();
+                renderProducts();
+            }
+        }
+
+        // --- ЧЕКИ И ПОКУПКИ КОМПАНИИ ---
+        function buyCompanyAsset() {
+            let title = document.getElementById('purchaseItemTitle').value.trim();
+            let cat = document.getElementById('purchaseCategory').value;
+            let price = parseInt(document.getElementById('purchasePrice').value);
+            let capacity = parseInt(document.getElementById('purchaseCapacity').value) || 3;
+
+            if (!title || isNaN(price) || price <= 0) return alert("Заполните название и корректную стоимость!");
+            if (totalBalance < price) return alert("Недостаточно средств в кассе для покупки!");
+
+            totalBalance -= price;
+            let receipt = {
+                id: Date.now(),
+                title: title,
+                category: cat,
+                price: price,
+                dateStr: formatDate(day),
+                code: "CHK-" + Math.floor(10000 + Math.random() * 90000)
+            };
+
+            purchaseReceipts.unshift(receipt);
+
+            if (cat === "Транспорт") {
+                myProperties.unshift({
+                    id: Date.now(),
+                    mainType: "transport",
+                    title: title,
+                    owner: "Холдинг «Зелёный Дол»",
+                    buyDate: formatDate(day),
+                    regDate: formatDate(day),
+                    regCode: "REG-" + Math.floor(100000 + Math.random() * 900000),
+                    transCategory: "Наземный/Водный",
+                    transClass: "Грузовой/Спец",
+                    transMaxOrders: capacity,
+                    transColor: "Стандарт",
+                    transVin: "VIN-" + Math.floor(1000 + Math.random() * 9000) + "-ZD",
+                    transPlate: "PLT-" + Math.floor(100 + Math.random() * 900),
+                    transEngine: "Двигатель К-1",
+                    transFuel: "Бензин/Редстоун",
+                    isEnRoute: false,
+                    totalDeliveredCount: 0
+                });
+            }
+
+            document.getElementById('purchaseItemTitle').value = "";
+            document.getElementById('purchasePrice').value = "";
+
+            saveData();
+            updateUI();
+            renderPurchases();
+            alert(`Успешно куплено: "${title}". Чек #${receipt.code} зарегистрирован!`);
+        }
+
+        function renderPurchases() {
+            const list = document.getElementById('purchasesHistoryList');
+            if (!list) return;
+            list.innerHTML = "";
+            if (purchaseReceipts.length === 0) {
+                list.innerHTML = "<p style='font-size:12px; color:var(--text-muted);'>Нет чеков на закупку</p>";
+                return;
+            }
+
+            purchaseReceipts.forEach(p => {
+                list.innerHTML += `
+                    <div class="card" style="padding:10px; margin-bottom:8px; border-left:3px solid var(--accent-gold);">
+                        <div style="display:flex; justify-content:space-between; align-items:center;">
+                            <b>${p.title}</b>
+                            <b style="color:var(--accent-red);">-${p.price.toLocaleString()} 🪙</b>
+                        </div>
+                        <div style="font-size:11px; color:var(--text-muted); margin-top:4px;">
+                            📁 Категория: <b>${p.category}</b> | 📅 Дата: <b>${p.dateStr}</b> | Чек: <b>#${p.code}</b>
+                        </div>
+                    </div>`;
+            });
+        }
+
+        function renderNews() {
+            const list = document.getElementById('newsList');
+            if (!list) return;
+            list.innerHTML = "";
+            newsList.forEach(n => {
+                list.innerHTML += `
+                    <div class="news-card">
+                        <div class="news-title">${n.title}</div>
+                        <div class="news-body">${n.body}</div>
+                        <div class="news-date">📅 ${n.dateStr}</div>
+                    </div>`;
+            });
+        }
+
+        function generateDailyNews() {
+            let newsPool = [
+                { title: "🌧️ Засуха в регионе!", body: "В Камнегорске и окрестностях сильная засуха! Цены на овощи подскочили.", effect: "drought" },
+                { title: "🐛 Вредители в садах!", body: "В Сосновом Бору зафиксирован наплыв вредителей. Высокий спрос на урожай!", effect: "pests" },
+                { title: "🏛️ Налоговые льготы", body: "Правительство объявило поддержку аграриев: налог сегодня снижен до 5%!", effect: "tax_low" },
+                { title: "🎉 Ярмарка в Зелёном Доле", body: "В городе проходила Осенняя Ярмарка. Цены на бирже выросли!", effect: "fair" },
+                { title: "🚢 Логистический бум", body: "Торговые пути чисты. Число контрактов на Бирже сегодня увеличено!", effect: "boom" }
+            ];
+
+            let selected = newsPool[Math.floor(Math.random() * newsPool.length)];
+            currentTaxRate = selected.effect === "tax_low" ? 0.05 : 0.12;
+
+            newsList.unshift({
+                title: selected.title,
+                body: selected.body,
+                dateStr: formatDate(day)
+            });
+
+            return selected;
+        }
+
+        function renderCities() {
+            const list = document.getElementById('citiesList');
+            if (!list) return;
+            list.innerHTML = "";
+            cities.forEach((cityName, idx) => {
+                list.innerHTML += `
+                    <div class="item-row">
+                        <b>📍 ${cityName}</b>
+                        <button class="btn btn-danger btn-sm" onclick="deleteCity(${idx})">🗑️ Удалить</button>
+                    </div>`;
+            });
+        }
+
+        function addNewCity() {
+            const val = document.getElementById('newCityNameInput').value.trim();
+            if (val) {
+                if (cities.includes(val)) {
+                    alert("Этот город уже есть в вашем реестре!");
+                    return;
+                }
+                cities.push(val);
+                document.getElementById('newCityNameInput').value = "";
+                saveData();
+                renderCities();
+                alert(`Город "${val}" успешно открыт!`);
+            }
+        }
+
+        function deleteCity(idx) {
+            if (confirm(`Удалить город "${cities[idx]}" из торговой карты?`)) {
+                cities.splice(idx, 1);
+                saveData();
+                renderCities();
+            }
+        }
+
+        function updateMarketPrices() {
+            let highDemandCount = 0;
+            crops.forEach(c => {
+                c.highDemand = false;
+                if (Math.random() < 0.50) {
+                    let percentChange = (Math.random() * 0.45) - 0.25; 
+                    let newPrice = Math.max(10, Math.round(c.priceKg * (1 + percentChange)));
+                    c.trend = newPrice > (c.currentPriceKg || c.priceKg) ? "up" : (newPrice < (c.currentPriceKg || c.priceKg) ? "down" : "same");
+                    c.currentPriceKg = newPrice;
+                }
+                if (Math.random() < 0.12 && highDemandCount < 2) {
+                    c.highDemand = true;
+                    highDemandCount++;
+                }
+            });
+        }
+
+        function renderPrices() {
+            const list = document.getElementById('marketPricesList');
+            if (!list) return;
+            list.innerHTML = "";
+            crops.forEach((c, index) => {
+                if (c.active === false) return;
+                let trendIcon = c.trend === "up" ? "<span class='trend-up'>▲</span>" : (c.trend === "down" ? "<span class='trend-down'>▼</span>" : "➖");
+                let demandBadge = c.highDemand ? "<span class='high-demand'>🔥 Высокий спрос</span>" : "";
+                let livePrice = c.currentPriceKg || c.priceKg;
+
+                list.innerHTML += `
+                    <div class="item-row">
+                        <div>
+                            <b>${c.name}</b> ${demandBadge}
+                            <small style="display:block; color:var(--text-muted); font-size:10px;">Базовая цена: ${c.priceKg} 🪙/кг</small>
+                        </div>
+                        <div style="display:flex; align-items:center; gap:8px;">
+                            <b style="color:var(--accent-gold); font-size:13px;">${livePrice} 🪙/кг</b> ${trendIcon}
+                            <button class="btn btn-blue btn-sm" onclick="applyMarketPrice(${index})">✅ Принять</button>
+                        </div>
+                    </div>`;
+            });
+        }
+
+        function applyMarketPrice(cropIndex) {
+            let c = crops[cropIndex];
+            let newPrice = c.currentPriceKg || c.priceKg;
+            c.priceKg = newPrice;
+            saveData();
+            renderPrices();
+            alert(`Базовая цена для "${c.name}" изменена на ${newPrice} 🪙/кг!`);
+        }
+
+        function checkStockForOrder(items) {
+            let canFulfill = true;
+            let missingList = [];
+
+            items.forEach(item => {
+                let crop = crops.find(c => c.name === item.name);
+                let prod = products.find(p => p.name === item.name);
+                let availableKg = crop ? (crop.stockKg || 0) : (prod ? (prod.stockKg || 0) : 0);
+                
+                if (availableKg < item.kg) {
+                    canFulfill = false;
+                    let diffKg = Math.round((item.kg - availableKg) * 10) / 10;
+                    missingList.push(`${item.name} (нужно еще ${diffKg} кг)`);
+                }
+            });
+
+            return { canFulfill, missingList };
+        }
+
+        function generateDailyMarket() {
+            marketOrders = [];
+            let availableCrops = crops.filter(c => c.active !== false);
+
+            if (availableCrops.length === 0 || cities.length === 0) {
+                renderMarket();
+                return;
+            }
+
+            let baseCount = Math.floor(companyRating * 1.3);
+            let totalOrdersToday = Math.max(2, Math.floor(Math.random() * 3) + baseCount);
+
+            for (let i = 0; i < totalOrdersToday; i++) {
+                createSingleMarketOrder();
+            }
+
+            saveData();
+            renderMarket();
+            updateUI();
+        }
+
+        function formatItemsText(itemsArray) {
+            return itemsArray.map(i => `${i.name}: ${i.kg}кг (${i.pcs}шт)`).join(" | ");
+        }
+
+        function renderMarket() {
+            const list = document.getElementById('marketList');
+            if (!list) return;
+            list.innerHTML = marketOrders.length === 0 ? "<p style='font-size:13px; color:var(--text-muted);'>Сегодня нет заявок на бирже. Новые контракты поступают автоматически!</p>" : "";
+            marketOrders.forEach(o => {
+                let stockCheck = checkStockForOrder(o.items);
+                let statusBadge = stockCheck.canFulfill 
+                    ? `<span class="status-badge-ok">🟢 Готов к отгрузке</span>`
+                    : `<span class="status-badge-no">🔴 Недостает на складе</span>`;
+                
+                let missingHtml = stockCheck.missingList.length > 0 
+                    ? `<div class="missing-info"><b>Недостает:</b> ${stockCheck.missingList.join(', ')}</div>` 
+                    : "";
+
+                let timeWaitBadge = formatWaitTimeBadge(o.timestampCreated);
+
+                list.innerHTML += `
+                    <div class="card">
+                        <div style="display:flex; justify-content:space-between; align-items:center;">
+                            <div>
+                                <b>#${o.uniqueCode} (${o.dest})</b>
+                                <div style="margin-top:2px;">${timeWaitBadge} <span style="font-size:10px; color:var(--text-muted);">в ${o.timeCreated || ''}</span></div>
+                            </div>
+                            <span class="type-tag ${o.tagClass}">${o.type}</span>
+                        </div>
+                        <div style="margin-top:6px;">${statusBadge}</div>
+                        <p style="font-size:12px; color:var(--text-muted); margin: 6px 0 2px;">${formatItemsText(o.items)}</p>
+                        ${missingHtml}
+                        <span class="item-badge">📦 Вес/Объем: ${o.totalKg} кг (${o.totalPcs} шт)</span>
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-top:10px;">
+                            <b style="color:var(--accent-gold); font-size:16px;">${o.price.toLocaleString()} 🪙</b>
+                            <button class="btn btn-blue" style="width:auto;" onclick="takeOrder(${o.id})">Взять в работу 🚤</button>
+                        </div>
+                    </div>`;
+            });
+        }
+
+        function takeOrder(id) {
+            const idx = marketOrders.findIndex(o => o.id === id);
+            let selectedOrder = marketOrders[idx];
+            if (!selectedOrder.uniqueCode) {
+                selectedOrder.uniqueCode = "ORD-" + Math.floor(1000 + Math.random() * 9000);
+            }
+            selectedOrder.statusStage = "taken";
+            selectedOrder.isDeducted = false;
+            
+            let nowTime = new Date();
+            selectedOrder.timeTaken = nowTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            selectedOrder.timestampTaken = nowTime.getTime();
+
+            inProgressOrders.push(selectedOrder);
+            marketOrders.splice(idx, 1);
+            saveData();
+            renderMarket();
+            renderProgress();
+            updateUI();
+        }
+
+        function setLogisticsFilter(filterType, btnEl) {
+            currentLogisticsFilter = filterType;
+            document.querySelectorAll('.filter-btn').forEach(el => el.classList.remove('active'));
+            btnEl.classList.add('active');
+            renderProgress();
+        }
+
+        function promptLoadIntoVehicle(orderId) {
+            let order = inProgressOrders.find(o => o.id === orderId);
+            if (!order) return;
+
+            let vehicles = myProperties.filter(p => p.mainType === 'transport');
+            if (vehicles.length === 0) {
+                alert("❌ У вас нет зарегистрированного транспорта! Добавьте технику в «Чеках покупок» или «Реестре имущества».");
+                return;
+            }
+
+            let availableVehicles = vehicles.filter(v => !v.isEnRoute);
+
+            if (availableVehicles.length === 0) {
+                alert("❌ Весь ваш транспорт сейчас находится В ПУТИ! Подойдите к мониторингу транспорта и дождитесь возвращения в паркинг.");
+                return;
+            }
+
+            let promptText = "🚚 Выберите транспорт в ПАРКИНГЕ для погрузки заказа #" + order.uniqueCode + ":\n\n";
+            availableVehicles.forEach((v, index) => {
+                let maxCap = parseInt(v.transMaxOrders) || 3;
+                let currentLoaded = inProgressOrders.filter(o => o.assignedVehicleId === v.id && o.statusStage !== 'shipped').length;
+                promptText += `${index + 1}. ${v.title} (${v.transClass}) — Загружено: ${currentLoaded}/${maxCap} зак.\n`;
+            });
+
+            let choice = prompt(promptText);
+            if (choice === null) return;
+
+            let selectedIdx = parseInt(choice) - 1;
+            if (isNaN(selectedIdx) || selectedIdx < 0 || selectedIdx >= availableVehicles.length) {
+                alert("Некорректный номер транспорта!");
+                return;
+            }
+
+            let selectedVeh = availableVehicles[selectedIdx];
+            let maxCap = parseInt(selectedVeh.transMaxOrders) || 3;
+            let currentLoaded = inProgressOrders.filter(o => o.assignedVehicleId === selectedVeh.id && o.statusStage !== 'shipped').length;
+
+            if (currentLoaded >= maxCap) {
+                alert(`❌ Транспорт "${selectedVeh.title}" полностью заполнен! (${currentLoaded}/${maxCap} заказов)`);
+                return;
+            }
+
+            order.assignedVehicleId = selectedVeh.id;
+            order.assignedVehicleTitle = selectedVeh.title;
+            order.statusStage = 'loaded';
+
+            saveData();
+            renderProgress();
+            alert(`📦 Заказ #${order.uniqueCode} успешно погружен в "${selectedVeh.title}"!`);
+        }
+
+        function shipVehicle(vehicleId) {
+            let loadedOrders = inProgressOrders.filter(o => o.assignedVehicleId === vehicleId && o.statusStage === 'loaded');
+            if (loadedOrders.length === 0) return;
+
+            let veh = myProperties.find(p => p.id === vehicleId);
+            if (veh) veh.isEnRoute = true;
+
+            let vehTitle = loadedOrders[0].assignedVehicleTitle || "Транспорт";
+            let nowTime = new Date();
+
+            loadedOrders.forEach(o => {
+                o.statusStage = 'shipped';
+                o.timeShipped = nowTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            });
+
+            saveData();
+            renderProgress();
+            renderFleetStatus();
+            alert(`🌊 "${vehTitle}" отправился в рейс! В пути посылок: ${loadedOrders.length}. Транспорт заблокирован до возвращения в паркинг.`);
+        }
+
+        function changeOrderStage(id, newStage) {
+            let order = inProgressOrders.find(o => o.id === id);
+            if (!order) return;
+
+            let nowTime = new Date();
+            let nowTs = nowTime.getTime();
+
+            if (newStage === 'packing') {
+                if (!order.isDeducted) {
+                    let stockCheck = checkStockForOrder(order.items);
+                    if (!stockCheck.canFulfill) {
+                        alert(`❌ Нельзя начать комплектацию! На складе недостаточно продукции:\n${stockCheck.missingList.join('\n')}`);
+                        return;
+                    }
+
+                    order.items.forEach(item => {
+                        let crop = crops.find(c => c.name === item.name);
+                        let prod = products.find(p => p.name === item.name);
+                        if (crop) {
+                            crop.stockKg = Math.max(0, Math.round(((crop.stockKg || 0) - item.kg) * 10) / 10);
+                            crop.stockPcs = Math.max(0, (crop.stockPcs || 0) - item.pcs);
+                        } else if (prod) {
+                            prod.stockKg = Math.max(0, Math.round(((prod.stockKg || 0) - item.kg) * 10) / 10);
+                            prod.stockPcs = Math.max(0, (prod.stockPcs || 0) - item.pcs);
+                        }
+                    });
+                    order.isDeducted = true;
+                }
+
+                order.timePacking = nowTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                let diffMins = Math.round((nowTs - order.timestampTaken) / 60000);
+                order.durationTaken = diffMins + " мин.";
+                workMinutesToday += diffMins;
+                order.statusStage = 'packing';
+            } else if (newStage === 'ready') {
+                order.timeReady = nowTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                order.statusStage = 'ready';
+            }
+
+            saveData();
+            renderProgress();
+            renderHarvestTab();
+            renderMarketplaceShowcase();
+        }
+
+        function cancelOrder(id) {
+            let idx = inProgressOrders.findIndex(o => o.id === id);
+            if (idx === -1) return;
+
+            let order = inProgressOrders[idx];
+            if (confirm(`Отменить заказ #${order.uniqueCode}? ${order.isDeducted ? 'Собранный товар вернется обратно на склад!' : ''}`)) {
+                if (order.isDeducted) {
+                    order.items.forEach(item => {
+                        let crop = crops.find(c => c.name === item.name);
+                        let prod = products.find(p => p.name === item.name);
+                        if (crop) {
+                            crop.stockKg = Math.round(((crop.stockKg || 0) + item.kg) * 10) / 10;
+                            crop.stockPcs = (crop.stockPcs || 0) + item.pcs;
+                        } else if (prod) {
+                            prod.stockKg = Math.round(((prod.stockKg || 0) + item.kg) * 10) / 10;
+                            prod.stockPcs = (prod.stockPcs || 0) + item.pcs;
+                        }
+                    });
+                }
+
+                inProgressOrders.splice(idx, 1);
+                saveData();
+                renderProgress();
+                renderHarvestTab();
+                renderMarketplaceShowcase();
+                alert(`Заказ #${order.uniqueCode} отменён.`);
+            }
+        }
+
+        function renderProgress() {
+            const list = document.getElementById('progressList');
+            if (!list) return;
+
+            let countAll = inProgressOrders.length;
+            let countTaken = inProgressOrders.filter(o => o.statusStage === 'taken').length;
+            let countPacking = inProgressOrders.filter(o => o.statusStage === 'packing').length;
+            let countReady = inProgressOrders.filter(o => o.statusStage === 'ready').length;
+            let countLoaded = inProgressOrders.filter(o => o.assignedVehicleId && o.statusStage === 'loaded').length;
+            let countShipped = inProgressOrders.filter(o => o.statusStage === 'shipped').length;
+
+            const filtersContainer = document.getElementById('logisticsFiltersContainer');
+            if (filtersContainer) {
+                filtersContainer.innerHTML = `
+                    <button class="filter-btn ${currentLogisticsFilter === 'all' ? 'active' : ''}" onclick="setLogisticsFilter('all', this)">Все (${countAll})</button>
+                    <button class="filter-btn ${currentLogisticsFilter === 'taken' ? 'active' : ''}" onclick="setLogisticsFilter('taken', this)">📥 В работе (${countTaken})</button>
+                    <button class="filter-btn ${currentLogisticsFilter === 'packing' ? 'active' : ''}" onclick="setLogisticsFilter('packing', this)">⚙️ Комплектуются (${countPacking})</button>
+                    <button class="filter-btn ${currentLogisticsFilter === 'ready' ? 'active' : ''}" onclick="setLogisticsFilter('ready', this)">📦 Готовы (${countReady})</button>
+                    <button class="filter-btn ${currentLogisticsFilter === 'loaded' ? 'active' : ''}" onclick="setLogisticsFilter('loaded', this)">🚚 Загруженные (${countLoaded})</button>
+                    <button class="filter-btn ${currentLogisticsFilter === 'shipped' ? 'active' : ''}" onclick="setLogisticsFilter('shipped', this)">🌊 В пути (${countShipped})</button>
+                `;
+            }
+
+            const searchQuery = (document.getElementById('logisticsSearchInput') ? document.getElementById('logisticsSearchInput').value : '').toLowerCase().trim();
+            list.innerHTML = "";
+
+            if (currentLogisticsFilter === 'loaded') {
+                let vehicles = myProperties.filter(p => p.mainType === 'transport');
+                let vehiclesWithOrders = 0;
+
+                vehicles.forEach(v => {
+                    let vOrders = inProgressOrders.filter(o => o.assignedVehicleId === v.id && o.statusStage === 'loaded');
+                    if (vOrders.length > 0) {
+                        vehiclesWithOrders++;
+                        let maxCap = parseInt(v.transMaxOrders) || 3;
+                        let ordersListHtml = "";
+                        vOrders.forEach(o => {
+                            ordersListHtml += `
+                                <div class="item-row" style="font-size:11px; padding:4px 0;">
+                                    <span><b>#${o.uniqueCode}</b> (${o.dest}) — ${formatItemsText(o.items)}</span>
+                                    <b style="color:var(--accent-gold);">${o.price.toLocaleString()} 🪙</b>
+                                </div>`;
+                        });
+
+                        list.innerHTML += `
+                            <div class="card" style="border-left:4px solid var(--accent-purple);">
+                                <div style="display:flex; justify-content:space-between; align-items:center;">
+                                    <b>🚚 ${v.title} (${v.transClass})</b>
+                                    <span class="stage-badge">Загружено: ${vOrders.length}/${maxCap} зак.</span>
+                                </div>
+                                <div style="margin-top:8px;">${ordersListHtml}</div>
+                                <button class="btn btn-gold" style="margin-top:10px;" onclick="shipVehicle(${v.id})">🌊 Отправить рейс в путь</button>
+                            </div>`;
+                    }
+                });
+
+                if (vehiclesWithOrders === 0) {
+                    list.innerHTML = "<p style='font-size:13px; color:var(--text-muted); text-align:center; padding:15px;'>Нет погруженного транспорта.</p>";
+                }
+                return;
+            }
+
+            let filteredOrders = inProgressOrders.filter(o => {
+                if (currentLogisticsFilter !== 'all' && o.statusStage !== currentLogisticsFilter) return false;
+                if (searchQuery) {
+                    let matchDest = o.dest.toLowerCase().includes(searchQuery);
+                    let matchCode = o.uniqueCode.toLowerCase().includes(searchQuery);
+                    let matchVeh = o.assignedVehicleTitle && o.assignedVehicleTitle.toLowerCase().includes(searchQuery);
+                    let matchItems = o.items.some(i => i.name.toLowerCase().includes(searchQuery));
+                    return matchDest || matchCode || matchItems || matchVeh;
+                }
+                return true;
+            });
+
+            if (filteredOrders.length === 0) {
+                list.innerHTML = "<p style='font-size:13px; color:var(--text-muted); text-align:center; padding:15px;'>Нет активных рейсов</p>";
+                return;
+            }
+
+            filteredOrders.forEach(o => {
+                let currentStage = o.statusStage || "taken";
+                let stageBadgeText = "📥 Взят в работу";
+                let stageBtnHtml = "";
+                let timerInfoHtml = `<div class="order-timer-info">⏱️ Взят в работу в: ${o.timeTaken || 'Свежий'}</div>`;
+
+                if (currentStage === "taken") {
+                    stageBtnHtml = `<button class="btn btn-purple btn-sm" onclick="changeOrderStage(${o.id}, 'packing')">➡️ Комплектовать</button>`;
+                } else if (currentStage === "packing") {
+                    stageBadgeText = "⚙️ Комплектуется";
+                    stageBtnHtml = `<button class="btn btn-blue btn-sm" onclick="changeOrderStage(${o.id}, 'ready')">➡️ Готов</button>`;
+                } else if (currentStage === "ready") {
+                    stageBadgeText = "📦 Готов";
+                    if (o.isOnlineStore) {
+                        stageBtnHtml = `<button class="btn btn-gold btn-sm" onclick="shipOnlineDirectly(${o.id})">📦 Отправить почтой 📮</button>`;
+                    } else {
+                        stageBtnHtml = `<button class="btn btn-purple btn-sm" onclick="promptLoadIntoVehicle(${o.id})">📥 Погрузить в ТС</button>`;
+                    }
+                } else if (currentStage === "loaded") {
+                    stageBadgeText = `🚚 В кузове: ${o.assignedVehicleTitle}`;
+                    stageBtnHtml = `<button class="btn btn-gold btn-sm" onclick="shipVehicle(${o.assignedVehicleId})">🌊 Отправить ТС</button>`;
+                } else if (currentStage === "shipped") {
+                    if (o.isOnlineStore) {
+                        let daysLeft = o.deliveryDaysRemaining || 0;
+                        if (daysLeft > 0) {
+                            stageBadgeText = `📮 В пути (Осталось: ${daysLeft} дн.)`;
+                            stageBtnHtml = `<span style="font-size:10px; color:var(--text-muted);">Едет в город получателя...</span>`;
+                        } else {
+                            stageBadgeText = `📍 Прибыл в пункт выдачи`;
+                            if (o.paymentType === 'cod') {
+                                stageBtnHtml = `<button class="btn btn-gold btn-sm" onclick="claimCodMoney(${o.id})">💰 Забрать наложку и выдать ✅</button>`;
+                            } else {
+                                stageBtnHtml = `<button class="btn btn-green btn-sm" style="background:var(--accent-green);" onclick="completeOrder(${o.id})">📦 Выдать клиенту ✅</button>`;
+                            }
+                        }
+                    } else {
+                        stageBadgeText = `🌊 В пути на ${o.assignedVehicleTitle || 'ТС'}`;
+                        stageBtnHtml = `<button class="btn btn-sm" style="background:var(--accent-green);" onclick="completeOrder(${o.id})">📦 Доставить в ${o.dest} ✅</button>`;
+                    }
+                }
+
+                let missingHtml = "";
+                if (!o.isDeducted) {
+                    let stockCheck = checkStockForOrder(o.items);
+                    if (stockCheck.missingList.length > 0) {
+                        missingHtml = `<div class="missing-info"><b>Дособирать:</b> ${stockCheck.missingList.join(', ')}</div>`;
+                    }
+                } else {
+                    missingHtml = `<div style="font-size:11px; color:var(--accent-green); margin-top:4px;">✅ Списано со склада</div>`;
+                }
+
+                let onlineBadge = o.isOnlineStore ? `<span class="online-tag" style="margin-left:6px;">🌐 ONLINE (${o.paymentType==='cod'?'Наложка':'Оплачено'})</span>` : "";
+
+                list.innerHTML += `
+                    <div class="card">
+                        <div style="display:flex; justify-content:space-between; align-items:center;">
+                            <b>#${o.uniqueCode} (${o.dest}) ${onlineBadge}</b>
+                            <span class="stage-badge">${stageBadgeText}</span>
+                        </div>
+                        <p style="font-size:12px; color:var(--text-muted); margin: 6px 0 2px;">${formatItemsText(o.items)}</p>
+                        ${missingHtml}
+                        ${timerInfoHtml}
+                        <span class="item-badge">📦 Вес: ${o.totalKg} кг (${o.totalPcs} шт) ${o.assignedVehicleTitle ? ' | 🚚 ' + o.assignedVehicleTitle : (o.isOnlineStore ? ' | 📮 Курьерка' : '')}</span>
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-top:10px;">
+                            <b style="color:var(--accent-gold); font-size:16px;">${o.price.toLocaleString()} 🪙</b>
+                            <div style="display:flex; gap:6px;">
+                                ${currentStage !== 'shipped' ? `<button class="btn btn-danger btn-sm" onclick="cancelOrder(${o.id})" title="Отменить заказ">🚫</button>` : ''}
+                                ${stageBtnHtml}
+                            </div>
+                        </div>
+                    </div>`;
+            });
+        }
+
+        function completeOrder(id) {
+            inProgressOrders = inProgressOrders.filter(o => {
+                if (o.id === id) {
+                    if (!o.isDeducted) {
+                        o.items.forEach(item => {
+                            let crop = crops.find(c => c.name === item.name);
+                            let prod = products.find(p => p.name === item.name);
+                            if (crop) {
+                                crop.stockKg = Math.max(0, Math.round(((crop.stockKg || 0) - item.kg) * 10) / 10);
+                                crop.stockPcs = Math.max(0, (crop.stockPcs || 0) - item.pcs);
+                            } else if (prod) {
+                                prod.stockKg = Math.max(0, Math.round(((prod.stockKg || 0) - item.kg) * 10) / 10);
+                                prod.stockPcs = Math.max(0, (prod.stockPcs || 0) - item.pcs);
+                            }
+                        });
+                    }
+
+                    if (!o.isOnlineStore) {
+                        totalBalance += o.price;
+                        dayRevenue += o.price;
+                    }
+                    dayOrders++;
+                    workMinutesToday += 15;
+
+                    if (o.assignedVehicleId) {
+                        let v = myProperties.find(p => p.id === o.assignedVehicleId);
+                        if (v) v.totalDeliveredCount = (v.totalDeliveredCount || 0) + 1;
+                    }
+
+                    reviews.unshift({
+                        author: "Торговая гильдия (" + o.dest + ")",
+                        text: "Отличная доставка в " + o.dest + "! Всё супер.",
+                        stars: 5,
+                        dateStr: formatDate(day)
+                    });
+
+                    companyRating = Math.min(5.0, Math.round((companyRating + 0.05) * 100) / 100);
+
+                    archive.unshift({ 
+                        id: o.id, 
+                        uniqueCode: o.uniqueCode, 
+                        dest: o.dest, 
+                        items: o.items, 
+                        totalKg: o.totalKg, 
+                        totalPcs: o.totalPcs, 
+                        price: o.price, 
+                        day: day, 
+                        dateStr: formatDate(day), 
+                        vehicleTitle: o.assignedVehicleTitle || (o.isOnlineStore ? "Курьерская Почтовая Служба" : "Транспорт")
+                    });
+
+                    alert(`📦 Заказ #${o.uniqueCode} успешно выдан в ${o.dest}!`);
+                    return false;
+                }
+                return true;
+            });
+
+            saveData();
+            updateUI();
+            renderProgress();
+            renderArchive();
+            renderBookkeeping();
+            renderHarvestTab();
+            renderMarketplaceShowcase();
+        }
+
+        function renderBookkeeping() {
+            document.getElementById('bookkeepingTotalBalance').innerText = totalBalance.toLocaleString() + " 🪙";
+            const container = document.getElementById('bookkeepingDaysList');
+            if (!container) return;
+            container.innerHTML = "";
+
+            let daysMap = {};
+            archive.forEach(a => {
+                let dStr = a.dateStr || formatDate(a.day);
+                if (!daysMap[dStr]) daysMap[dStr] = { totalRevenue: 0, receipts: [] };
+                daysMap[dStr].totalRevenue += a.price;
+                daysMap[dStr].receipts.push(a);
+            });
+
+            let sortedDays = Object.keys(daysMap).sort().reverse();
+            if (sortedDays.length === 0) {
+                container.innerHTML = "<p style='font-size:12px; color:var(--text-muted);'>Нет записей</p>";
+                return;
+            }
+
+            sortedDays.forEach(dStr => {
+                let dayData = daysMap[dStr];
+                let taxPaidForDay = dayTaxesHistory[dStr] || 0;
+                let receiptsHtml = "";
+                dayData.receipts.forEach(r => {
+                    let itemsStr = r.items ? r.items.map(i => `${i.name} (${i.kg} кг)`).join(', ') : "";
+                    receiptsHtml += `<div class="item-row" style="font-size:11px; padding:4px 0;"><span><b>#${r.uniqueCode}</b> (${r.dest})</span><b style="color:var(--accent-green);">+${r.price.toLocaleString()} 🪙</b></div>`;
+                });
+
+                container.innerHTML += `
+                    <div class="card" style="padding:10px; margin-bottom:8px;">
+                        <div style="display:flex; justify-content:space-between; align-items:center;">
+                            <b>📅 ${dStr}</b>
+                            <b style="color:var(--accent-gold);">+${dayData.totalRevenue.toLocaleString()} 🪙</b>
+                        </div>
+                        <div style="font-size:11px; color:var(--accent-red); margin-top:4px;">Налог за день: -${taxPaidForDay} 🪙</div>
+                        <div style="margin-top:6px;">${receiptsHtml}</div>
+                    </div>`;
+            });
+        }
+
+        // --- 📑 АРХИВ ЧЕКОВ (ДЕТАЛЬНАЯ ГРУППИРОВКА ПО ДНЯМ, ТС И ТОВАРАМ) ---
+        function renderArchive() {
+            const list = document.getElementById('archiveList');
+            if (!list) return;
+            const searchQuery = (document.getElementById('archiveSearchInput') ? document.getElementById('archiveSearchInput').value : '').toLowerCase().trim();
+            list.innerHTML = "";
+
+            let daysMap = {};
+            archive.forEach(a => {
+                let dKey = a.day || 1;
+                let dStr = a.dateStr || formatDate(dKey);
+                if (!daysMap[dStr]) {
+                    daysMap[dStr] = { dayNum: dKey, dateStr: dStr, totalRevenue: 0, orders: [] };
+                }
+                daysMap[dStr].totalRevenue += (a.price || 0);
+                daysMap[dStr].orders.push(a);
+            });
+
+            let sortedDayKeys = Object.keys(daysMap).sort().reverse();
+            let totalFound = 0;
+
+            sortedDayKeys.forEach(dateStr => {
+                let dayGroup = daysMap[dateStr];
+                let matchingOrders = dayGroup.orders.filter(a => {
+                    if (!searchQuery) return true;
+                    let matchCode = a.uniqueCode && a.uniqueCode.toLowerCase().includes(searchQuery);
+                    let matchDest = a.dest && a.dest.toLowerCase().includes(searchQuery);
+                    let matchVeh = a.vehicleTitle && a.vehicleTitle.toLowerCase().includes(searchQuery);
+                    let matchDate = dateStr.toLowerCase().includes(searchQuery);
+                    let matchItems = a.items && a.items.some(i => i.name.toLowerCase().includes(searchQuery));
+                    return matchCode || matchDest || matchVeh || matchDate || matchItems;
+                });
+
+                if (matchingOrders.length === 0) return;
+                totalFound += matchingOrders.length;
+
+                let ordersHtml = "";
+                matchingOrders.forEach(o => {
+                    let itemsDetailedList = "";
+                    if (o.items && o.items.length > 0) {
+                        itemsDetailedList = o.items.map(i => `• <b>${i.name}</b>: ${i.kg} кг (${i.pcs} шт)`).join("<br>");
+                    } else {
+                        itemsDetailedList = "Спецификация партии сохранена";
+                    }
+
+                    ordersHtml += `
+                        <div class="card" style="padding:10px; margin-bottom:8px; background:rgba(0,0,0,0.22); border-left:3px solid var(--accent-green);">
+                            <div style="display:flex; justify-content:space-between; align-items:center;">
+                                <b style="font-size:13px;">#${o.uniqueCode} ➔ ${o.dest}</b>
+                                <b style="color:var(--accent-green); font-size:14px;">+${(o.price || 0).toLocaleString()} 🪙</b>
+                            </div>
+                            <div style="font-size:11px; color:var(--accent-gold); margin:4px 0 6px;">
+                                🚚 <b>Транспорт доставки:</b> ${o.vehicleTitle || 'Грузовой транспорт'}
+                            </div>
+                            <div style="font-size:11px; color:#ecf0f1; line-height:1.5; background:rgba(255,255,255,0.03); padding:6px; border-radius:6px;">
+                                📦 <b>Отправлено товаров:</b><br>
+                                ${itemsDetailedList}
+                            </div>
+                            <div style="display:flex; justify-content:space-between; font-size:10px; color:var(--text-muted); margin-top:6px;">
+                                <span>Общий вес: ${o.totalKg || 0} кг (${o.totalPcs || 0} шт)</span>
+                                <span>Статус: <b>Доставлено ✅</b></span>
+                            </div>
+                        </div>`;
+                });
+
+                list.innerHTML += `
+                    <div class="card" style="padding:12px; margin-bottom:12px; border-top:2px solid var(--accent-gold);">
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; border-bottom:1px solid rgba(255,255,255,0.06); padding-bottom:6px;">
+                            <div>
+                                <b style="font-size:14px; color:var(--accent-gold);">📅 День ${dayGroup.dayNum} (${dayGroup.dateStr})</b>
+                                <div style="font-size:10px; color:var(--text-muted); margin-top:2px;">Выполнено заказов: <b>${matchingOrders.length}</b></div>
+                            </div>
+                            <div style="text-align:right;">
+                                <span style="font-size:10px; color:var(--text-muted);">Итого выручка:</span>
+                                <div style="font-size:13px; font-weight:bold; color:var(--accent-green);">+${dayGroup.totalRevenue.toLocaleString()} 🪙</div>
+                            </div>
+                        </div>
+                        ${ordersHtml}
+                    </div>`;
+            });
+
+            if (totalFound === 0) {
+                list.innerHTML = "<p style='font-size:12px; color:var(--text-muted); text-align:center; padding:15px;'>В архиве не найдено записей по вашему запросу.</p>";
+            }
+        }
+
+        function renderReviews() {
+            document.getElementById('reviewsRatingVal').innerText = companyRating.toFixed(1) + " ★";
+            const list = document.getElementById('reviewsList');
+            if (!list) return;
+            list.innerHTML = "";
+            reviews.forEach(r => {
+                list.innerHTML += `
+                    <div class="card" style="padding:10px; margin-bottom:8px;">
+                        <b>${r.author}</b> <span class="rating-stars">${'★'.repeat(r.stars)}</span>
+                        <p style="font-size:12px; margin:4px 0;">"${r.text}"</p>
+                    </div>`;
+            });
+        }
+
+        function renderAnalytics() {
+            document.getElementById('analyticsDateDisplay').innerText = formatDate(day);
+            document.getElementById('totalTaxesPaid').innerText = totalTaxesPaid.toLocaleString() + " 🪙";
+            document.getElementById('taxRateDisplay').innerText = Math.round(currentTaxRate * 100) + "%";
+            
+            let hours = Math.floor(workMinutesToday / 60);
+            let mins = workMinutesToday % 60;
+            document.getElementById('todayWorkHours').innerText = `${hours} ч. ${mins} мин.`;
+
+            const harvestDiv = document.getElementById('harvestAnalyticsList');
+            if (harvestDiv) {
+                harvestDiv.innerHTML = "";
+                crops.forEach(c => {
+                    harvestDiv.innerHTML += `<div class="item-row"><span>${c.name}</span><b>${c.totalHarvestedKg || 0} кг</b></div>`;
+                });
+            }
+        }
+
+        function togglePropertyFields() {
+            const mainType = document.getElementById('propMainType').value;
+            document.getElementById('fieldsLand').style.display = mainType === 'land' ? 'block' : 'none';
+            document.getElementById('fieldsTransport').style.display = mainType === 'transport' ? 'block' : 'none';
+            document.getElementById('fieldsRealty').style.display = mainType === 'realty' ? 'block' : 'none';
+        }
+
+        function registerNewProperty() {
+            const mainType = document.getElementById('propMainType').value;
+            const title = document.getElementById('propTitle').value.trim();
+            const owner = document.getElementById('propOwner').value.trim();
+            const buyDate = document.getElementById('propBuyDate').value.trim() || formatDate(day);
+            const regDate = formatDate(day);
+
+            if (!title || !owner) return alert("Заполните название и владельца!");
+
+            let propData = {
+                id: Date.now(),
+                mainType: mainType,
+                title: title,
+                owner: owner,
+                buyDate: buyDate,
+                regDate: regDate,
+                regCode: "REG-" + Math.floor(100000 + Math.random() * 900000)
+            };
+
+            if (mainType === 'transport') {
+                propData.transCategory = document.getElementById('transCategory').value;
+                propData.transClass = document.getElementById('transClass').value;
+                propData.transMaxOrders = parseInt(document.getElementById('transMaxOrders').value) || 3;
+                propData.transPlate = document.getElementById('transPlate').value.trim() || "Без номера";
+                propData.transVin = document.getElementById('transVin').value.trim() || ("VIN-" + Math.floor(100000 + Math.random() * 900000));
+                propData.transColor = document.getElementById('transColor').value.trim() || "Стандарт";
+                propData.transEngine = document.getElementById('transEngine').value.trim() || "Стандартный";
+                propData.transFuel = document.getElementById('transFuel').value;
+                propData.isEnRoute = false;
+                propData.totalDeliveredCount = 0;
+            } else if (mainType === 'realty') {
+                propData.realBlocks = document.getElementById('realBlocks').value.trim() || "38x38";
+                propData.realArea = parseInt(document.getElementById('realArea').value) || 100;
+                propData.realFloors = parseInt(document.getElementById('realFloors').value) || 1;
+                propData.realRooms = parseInt(document.getElementById('realRooms').value) || 1;
+                propData.realDesc = document.getElementById('realDesc').value.trim() || "Помещение предприятия";
+            } else if (mainType === 'land') {
+                propData.landInfo = document.getElementById('landInfo').value.trim() || "Сельскохозяйственный участок";
+            }
+
+            myProperties.unshift(propData);
+            saveData();
+            renderPropertyRegistry();
+
+            document.getElementById('propTitle').value = "";
+            document.getElementById('propOwner').value = "";
+            document.getElementById('propBuyDate').value = "";
+            alert("Имущество со всеми подробными данными внесено в Реестр!");
+        }
+
+        function deleteProperty(id) {
+            if (confirm("Удалить объект из Реестра?")) {
+                myProperties = myProperties.filter(item => item.id !== id);
+                saveData();
+                renderPropertyRegistry();
+            }
+        }
+
+        function renderPropertyRegistry() {
+            const container = document.getElementById('myPropertyRegistry');
+            if (!container) return;
+            container.innerHTML = "";
+
+            if (myProperties.length === 0) {
+                container.innerHTML = "<p style='font-size:12px; color:var(--text-muted);'>В Реестре пока нет объектов.</p>";
+                return;
+            }
+
+            myProperties.forEach(p => {
+                let badgeLabel = p.mainType === 'transport' ? `🚗 Транспорт (${p.transCategory || 'Наземный'})` : (p.mainType === 'realty' ? '🏢 Недвижимость / Помещение' : '🌾 Земельный участок');
+                let details = "";
+
+                if (p.mainType === 'transport') {
+                    details = `
+                        <div style="font-size:11px; color:var(--text-muted); margin-top:6px; line-height:1.6; background:rgba(0,0,0,0.18); padding:8px; border-radius:6px; border-left:2px solid var(--accent-blue);">
+                            <div><b>Класс:</b> ${p.transClass || 'Грузовой'} | <b>Цвет:</b> ${p.transColor || 'Стандарт'} | <b>Топливо:</b> ${p.transFuel || 'Дизель'}</div>
+                            <div><b>Номерной знак:</b> <span style="color:#fff; font-weight:bold;">${p.transPlate || 'Без номера'}</span> | <b>VIN-код:</b> <span style="color:#fff; font-weight:bold;">${p.transVin || 'Не указан'}</span></div>
+                            <div><b>Двигатель:</b> ${p.transEngine || 'Стандарт'} | <b>Вместимость:</b> ${p.transMaxOrders || 3} заказов</div>
+                        </div>`;
+                } else if (p.mainType === 'realty') {
+                    details = `
+                        <div style="font-size:11px; color:var(--text-muted); margin-top:6px; line-height:1.6; background:rgba(0,0,0,0.18); padding:8px; border-radius:6px; border-left:2px solid var(--accent-purple);">
+                            <div><b>Размер:</b> ${p.realBlocks || 'Не указан'} блоков | <b>Площадь:</b> ${p.realArea || 0} м²</div>
+                            <div><b>Этажей:</b> ${p.realFloors || 1} | <b>Комнат/Помещений:</b> ${p.realRooms || 1}</div>
+                            <div style="margin-top:2px;"><b>Описание/Назначение:</b> ${p.realDesc || 'Без описания'}</div>
+                        </div>`;
+                } else if (p.mainType === 'land') {
+                    details = `
+                        <div style="font-size:11px; color:var(--text-muted); margin-top:6px; line-height:1.6; background:rgba(0,0,0,0.18); padding:8px; border-radius:6px; border-left:2px solid var(--accent-green);">
+                            <div><b>Кадастровая информация:</b> ${p.landInfo || 'Не указано'}</div>
+                        </div>`;
+                }
+
+                container.innerHTML += `
+                    <div class="card" style="padding:12px; margin-bottom:10px;">
+                        <div style="display:flex; justify-content:space-between; align-items:center;">
+                            <b style="font-size:14px;">${p.title}</b>
+                            <button class="btn btn-danger btn-sm" onclick="deleteProperty(${p.id})">🗑️</button>
+                        </div>
+                        <div style="display:flex; gap:6px; margin:4px 0; align-items:center;">
+                            <span class="item-badge">${badgeLabel}</span>
+                            <span style="font-size:11px; color:var(--accent-gold);">👤 Владелец: <b>${p.owner || 'Холдинг'}</b></span>
+                        </div>
+                        <div style="font-size:11px; color:var(--text-muted); margin-top:4px;">
+                            📅 Дата покупки: <b>${p.buyDate || 'Не указана'}</b> | 🏛️ Реестр: <b>${p.regDate || '01/01/0001'}</b> (${p.regCode || 'REG'})
+                        </div>
+                        ${details}
+                    </div>`;
+            });
+        }
+
+        function nextDay() {
+            let taxAmount = dayRevenue > 0 ? Math.round(dayRevenue * currentTaxRate) : 0;
+            totalBalance = Math.max(0, totalBalance - taxAmount);
+            totalTaxesPaid += taxAmount;
+
+            let loanInterest = 0;
+            if (activeLoanObj) {
+                loanInterest = Math.round(activeLoanObj.amount * (activeLoanObj.ratePerDay / 100));
+                totalBalance = Math.max(0, totalBalance - loanInterest);
+                activeLoanObj.termDays -= 1;
+                if (activeLoanObj.termDays <= 0) {
+                    if (totalBalance >= activeLoanObj.amount) {
+                        totalBalance -= activeLoanObj.amount;
+                        alert(`Срок кредита истёк. Тело кредита (${activeLoanObj.amount} 🪙) списано.`);
+                        activeLoanObj = null;
+                    } else {
+                        alert("Срок кредита истёк, но не хватает средств на погашение! Начислена штрафная ставка.");
+                        activeLoanObj.ratePerDay += 2;
+                    }
+                }
+            }
+
+            let depositDividends = activeDeposit > 0 ? Math.round(activeDeposit * 0.03) : 0;
+            totalBalance += depositDividends;
+
+            let stocksDividends = 0;
+            Object.keys(myStocks).forEach(sId => {
+                let stock = stocksCatalog.find(s => s.id === sId);
+                if (stock && myStocks[sId] > 0) stocksDividends += Math.round(stock.price * stock.dividend * myStocks[sId]);
+            });
+            totalBalance += stocksDividends;
+
+            inProgressOrders.forEach(o => {
+                if (o.isOnlineStore && o.statusStage === 'shipped' && o.deliveryDaysRemaining > 0) {
+                    o.deliveryDaysRemaining -= 1;
+                }
+            });
+
+            dayTaxesHistory[formatDate(day)] = taxAmount;
+            let todayNews = generateDailyNews();
+
+            let msg = `🌙 Новый день (${formatDate(day + 1)})\n\n📰 ${todayNews.title}\n📊 Выручка за прошлый день: +${dayRevenue} 🪙`;
+            if (taxAmount > 0) msg += `\n🏛️ Налог: -${taxAmount} 🪙`;
+            if (loanInterest > 0) msg += `\n💳 Проценты по кредиту: -${loanInterest} 🪙`;
+            if (depositDividends > 0) msg += `\n📈 Депозитный доход: +${depositDividends} 🪙`;
+
+            day++;
+            workMinutesToday = 0;
+            dayRevenue = 0;
+            dayOrders = 0;
+
+            updateMarketPrices();
+            generateDailyMarket();
+            saveData();
+            updateUI();
+            renderProgress();
+            alert(msg);
+        }
+
+        function updateUI() {
+            document.getElementById('currentDateDisplay').innerText = formatDate(day);
+            document.getElementById('totalBalance').innerText = totalBalance.toLocaleString() + " 🪙";
+            document.getElementById('dayRevenueDisplay').innerText = "+" + dayRevenue.toLocaleString() + " 🪙";
+            let estimatedTax = Math.round(dayRevenue * currentTaxRate);
+            document.getElementById('estimatedTaxDisplay').innerText = `-${estimatedTax.toLocaleString()} 🪙 (${Math.round(currentTaxRate * 100)}%)`;
+            document.getElementById('hubOrdersCount').innerText = marketOrders.length;
+            document.getElementById('hubRating').innerText = companyRating.toFixed(1) + " ★";
+        }
+
+        function resetAllData() {
+            if (confirm("Сбросить весь прогресс?")) {
+                localStorage.clear();
+                location.reload();
+            }
+        }
+
+        if (marketOrders.length === 0) generateDailyMarket();
+        updateUI();
+    </script>
+</body>
+</html>
